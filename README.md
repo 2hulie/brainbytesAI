@@ -68,3 +68,8 @@ This diagram shows:
 - **Vonne Carlo P**: Implement message history storage  
 - **Rei Emmanuel C**: Create project documentation  
 - **All Team Members**: Final testing and preparation for submission
+
+## Documentation
+
+- [Full Platform Documentation](./documentation.md)
+
