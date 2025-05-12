@@ -71,5 +71,5 @@ This diagram shows:
 
 ## Documentation
 
-- [Full Platform Documentation](./Documentations.md)
+- [Full Platform Documentation](docs/Documentations.md)
 
