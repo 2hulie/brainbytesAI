@@ -33,9 +33,23 @@ const messageSchema = new mongoose.Schema({
   text: String,
   isUser: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
+  category: { type: String, default: "general" },
+  questionType: { type: String, default: "general" },
+  sentiment: { type: String, default: "neutral" },
 });
 
 const Message = mongoose.model("Message", messageSchema);
+
+const messagePairSchema = new mongoose.Schema({
+  userMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+  aiMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+  category: String,
+  questionType: String,
+  sentiment: String,
+  createdAt: { type: Date, default: Date.now },
+});
+
+const MessagePair = mongoose.model("MessagePair", messagePairSchema);
 
 // User Profile Schema
 const userProfileSchema = new mongoose.Schema({

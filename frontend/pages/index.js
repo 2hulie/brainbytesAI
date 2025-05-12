@@ -102,6 +102,11 @@ export default function Home() {
           response.data.aiMessage,
         ];
       });
+
+      // Refresh messages from the server to ensure synchronization
+      setTimeout(() => {
+        fetchMessages();
+      }, 500);
     } catch (error) {
       console.error("Error posting message:", error);
       // Show error in chat
