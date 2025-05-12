@@ -55,7 +55,7 @@ This diagram shows:
 
 ### Week 2: Platform Development
 - **Jodienne E**: Implement frontend container (Next.js)  
-- **Krstine E**: Implement backend container (Node.js)  
+- **Kristine E**: Implement backend container (Node.js)  
 - **Rei Emmanuel C**: Configure MongoDB Atlas and connection
 
 ### Week 3: Platform Development (continued)
@@ -64,7 +64,7 @@ This diagram shows:
 - **Vonne Carlo P**: Set up container networking
 
 ### Week 4: Integration and Testing
-- **Krstine E**: Integrate AI model  
+- **Kristine E**: Integrate AI model  
 - **Vonne Carlo P**: Implement message history storage  
 - **Rei Emmanuel C**: Create project documentation  
 - **All Team Members**: Final testing and preparation for submission
