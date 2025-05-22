@@ -1,18 +1,10 @@
 const fetch = require("node-fetch");
+const { GoogleGenAI } = require("@google/genai");
 
-// Initialize our AI service
-const initializeAI = () => {
-  console.log("Hugging Face AI service initialized");
+// Initialize our AI client using Gemini
+const aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  // Check if the token is available
-  if (!process.env.HUGGINGFACE_TOKEN) {
-    console.warn(
-      "Warning: HUGGINGFACE_TOKEN environment variable not set. API calls may fail."
-    );
-  }
-};
-
-// Expanded subject categories with more keywords
+// Expanded subject categories with keywords
 const subjectKeywords = {
   math: [
     "calculate",
@@ -189,8 +181,10 @@ const questionTypes = {
 // Sentiment analysis keywords
 const sentimentKeywords = {
   negative: [
+    "sad",
     "confused",
     "frustrating",
+    "frustrated",
     "difficult",
     "hard",
     "not understand",
@@ -212,8 +206,26 @@ const sentimentKeywords = {
     "horrible",
     "awful",
     "worst",
+    "useless",
+    "buggy",
+    "waste",
+    "broken",
+    "slow",
+    "disappointed",
+    "pain",
+    "pointless",
+    "sucks",
+    "poor",
+    "meh",
+    "inconsistent",
+    "unreliable",
+    "regret",
+    "crash",
+    "overwhelming",
+    "inaccurate",
   ],
   positive: [
+    "happy",
     "good",
     "great",
     "excellent",
@@ -232,426 +244,364 @@ const sentimentKeywords = {
     "enjoy",
     "perfect",
     "awesome",
+    "superb",
+    "well done",
+    "beautiful",
+    "smooth",
+    "efficient",
+    "intuitive",
+    "fast",
+    "impressive",
+    "reliable",
+    "flawless",
+    "neat",
+    "genius",
+    "nice",
+    "satisfying",
+    "simple",
+    "straightforward",
+    "responsive",
+    "clean",
+    "cool",
+    "great job",
+    "lifesaver",
   ],
 };
 
-// Function to detect question category
+// Sample fallback examples by category and type
+const sampleExamples = {
+  math: [
+    {
+      q: "What is the derivative of x^2?",
+      a: "The derivative of x^2 with respect to x is 2x.",
+    },
+    { q: "Calculate 12 * 8", a: "The result of 12 * 8 is 96." },
+  ],
+  science: [
+    {
+      q: "Give an example of a chemical reaction.",
+      a: "Mixing vinegar and baking soda produces carbon dioxide gas.",
+    },
+    {
+      q: "Define photosynthesis.",
+      a: "Photosynthesis is the process by which plants convert sunlight into chemical energy.",
+    },
+  ],
+  history: [
+    {
+      q: "Who was the first president of the Philippines?",
+      a: "Emilio Aguinaldo was the first President of the Philippines.",
+    },
+    {
+      q: "What was the Renaissance?",
+      a: "The Renaissance was a cultural movement in Europe from the 14th to 17th century emphasizing art, science, and humanism.",
+    },
+  ],
+  literature: [
+    { q: "Who wrote 'Hamlet'?", a: "William Shakespeare wrote 'Hamlet'." },
+    {
+      q: "What is a novel?",
+      a: "A novel is a long-form narrative work of fiction typically published as a book.",
+    },
+  ],
+  geography: [
+    {
+      q: "What is the highest mountain?",
+      a: "Mount Everest is the highest mountain above sea level.",
+    },
+    {
+      q: "Name a continent.",
+      a: "Asia is the largest continent by both area and population.",
+    },
+  ],
+  language: [
+    {
+      q: "What is a noun?",
+      a: "A noun is a word that names a person, place, thing, or idea.",
+    },
+    {
+      q: "Define syntax.",
+      a: "Syntax is the set of rules that governs the structure of sentences in a language.",
+    },
+  ],
+};
+
+function cleanMarkdown(text) {
+  // Remove markdown artifacts but preserve newlines
+  return text
+    .replace(/```[a-z]*\n/g, "") // Remove code block language identifiers
+    .replace(/```/g, "") // Remove code block markers
+    .replace(/#+\s/g, "") // Remove heading markers
+    .trim();
+}
+
 function detectCategory(question) {
-  const lowerQuestion = question.toLowerCase();
+  const lower = question.toLowerCase();
+  // Create a scoring system instead of first-match
+  let scores = {
+    math: 0,
+    science: 0,
+    history: 0,
+    literature: 0,
+    geography: 0,
+    language: 0,
+    general: 0,
+  };
 
-  // Check for math expressions
-  if (/[+\-*\/=]/.test(lowerQuestion) || /\d+/.test(lowerQuestion)) {
-    return "math";
+  // Check for math symbols and expressions with better context
+  if (
+    (/[+\-*\/=><]/.test(lower) && /\d+/.test(lower)) ||
+    /calculate|solve|equation|formula|compute/.test(lower)
+  ) {
+    scores.math += 5;
   }
 
-  // Check for all subject keywords
-  for (const [category, keywords] of Object.entries(subjectKeywords)) {
-    for (const keyword of keywords) {
-      if (lowerQuestion.includes(keyword)) {
-        return category;
+  // Check for specific science terms not in the keywords list
+  const scienceTerms = [
+    "neutron",
+    "proton",
+    "electron",
+    "quark",
+    "boson",
+    "hadron",
+    "lepton",
+    "isotope",
+    "nucleus",
+    "orbital",
+    "valence",
+    "radioactive",
+    "half-life",
+  ];
+
+  if (scienceTerms.some((term) => lower.includes(term))) {
+    scores.science += 3; // Give a strong boost to science score
+  }
+
+  // Score each category based on keyword matches
+  for (const [cat, kws] of Object.entries(subjectKeywords)) {
+    kws.forEach((keyword) => {
+      // Check for whole word matches or key phrases for better accuracy
+      const regex = new RegExp(`\\b${keyword}\\b|${keyword}\\s`, "i");
+      if (regex.test(lower)) {
+        scores[cat] += 1;
       }
-    }
+    });
   }
 
-  return "general";
+  // Return the highest scoring category
+  const bestCategory = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .filter((entry) => entry[1] > 0)[0];
+
+  return bestCategory ? bestCategory[0] : "general";
 }
 
-// Function to detect question type
-function detectQuestionType(question) {
-  const lowerQuestion = question.toLowerCase();
-
-  for (const [type, patterns] of Object.entries(questionTypes)) {
-    for (const pattern of patterns) {
-      if (lowerQuestion.includes(pattern)) {
-        return type;
-      }
-    }
-  }
-
-  return "general"; // Default type
-}
-
-// Function to detect sentiment
 function detectSentiment(question) {
-  const lowerQuestion = question.toLowerCase();
+  const lower = question.toLowerCase();
 
-  let negativeScore = 0;
-  let positiveScore = 0;
+  console.log("Analyzing sentiment for:", lower);
 
-  // Check for negative sentiment
-  for (const keyword of sentimentKeywords.negative) {
-    if (lowerQuestion.includes(keyword)) {
-      negativeScore++;
+  // Calculate sentiment scores with context awareness
+  let posScore = 0;
+  let negScore = 0;
+  let matchedWords = { positive: [], negative: [] };
+
+  // Check for negations that might reverse sentiment
+  const negations = ["not", "don't", "doesn't", "can't", "won't", "never"];
+
+  // Use better word boundary detection with regex
+  sentimentKeywords.positive.forEach((word) => {
+    // Create regex to match whole words or phrases
+    const regex = new RegExp(`\\b${word}\\b|\\b${word}\\s`, "i");
+    if (regex.test(lower)) {
+      // Track which words matched
+      matchedWords.positive.push(word);
+
+      // Check for negation (keep this logic)
+      const wordIndex = lower.indexOf(word);
+      const precedingText = lower.substring(
+        Math.max(0, wordIndex - 20),
+        wordIndex
+      );
+
+      if (negations.some((neg) => precedingText.includes(neg))) {
+        negScore += 1.0; // Increase from 0.5 to 1.0 to meet the threshold
+        matchedWords.negative.push("negated positive");
+      } else {
+        // Assign higher scores to stronger positive words
+        const strongPositives = [
+          "excellent",
+          "amazing",
+          "fantastic",
+          "brilliant",
+        ];
+        posScore += strongPositives.includes(word) ? 2 : 1;
+      }
     }
-  }
+  });
 
-  // Check for positive sentiment
-  for (const keyword of sentimentKeywords.positive) {
-    if (lowerQuestion.includes(keyword)) {
-      positiveScore++;
+  // Similar improvement for negative words
+  sentimentKeywords.negative.forEach((word) => {
+    const regex = new RegExp(`\\b${word}\\b|\\b${word}\\s`, "i");
+    if (regex.test(lower)) {
+      matchedWords.negative.push(word);
+
+      // Assign higher scores to stronger negative words
+      const strongNegatives = ["terrible", "horrible", "awful", "hate"];
+      negScore += strongNegatives.includes(word) ? 2 : 1;
     }
+  });
+
+  // Special cases that strongly indicate sentiment
+  if (
+    lower.includes("thank you so much") ||
+    lower.includes("really appreciate")
+  ) {
+    posScore += 3;
+    matchedWords.positive.push("strong gratitude");
   }
 
-  if (negativeScore > positiveScore && negativeScore > 0) {
-    return "negative";
-  } else if (positiveScore > negativeScore && positiveScore > 0) {
-    return "positive";
+  if (
+    lower.includes("extremely disappointed") ||
+    lower.includes("very frustrated")
+  ) {
+    negScore += 3;
+    matchedWords.negative.push("strong frustration");
   }
 
+  // Log what we found for debugging
+  console.log("Sentiment matches:", {
+    positive: matchedWords.positive,
+    negative: matchedWords.negative,
+    posScore,
+    negScore,
+  });
+
+  // Lower threshold for sentiment detection
+  if (posScore > negScore && posScore >= 1) return "positive";
+  if (negScore > posScore && negScore >= 1) return "negative";
   return "neutral";
 }
 
-// Function to get a response based on sentiment
-function getSentimentResponse(sentiment) {
-  if (sentiment === "negative") {
-    const responses = [
-      "I understand this might be confusing. Let me try to explain it more clearly.",
-      "I can see this might be frustrating. Let's approach this differently.",
-      "I apologize if my previous answer wasn't helpful. Let me try again.",
-      "Sometimes these concepts can be challenging. Let's break this down step by step.",
-      "I understand your frustration. Let me provide a simpler explanation.",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+function detectQuestionType(question) {
+  const lower = question.toLowerCase();
+
+  // Score different question types
+  let scores = {
+    definition: 0,
+    explanation: 0,
+    example: 0,
+    calculation: 0,
+    general: 1, // Default score
+  };
+
+  // Check for explicit question markers
+  if (lower.startsWith("what is") || lower.startsWith("define")) {
+    scores.definition += 3;
   }
-  return "";
+
+  if (lower.startsWith("why") || lower.startsWith("how does")) {
+    scores.explanation += 3;
+  }
+
+  if (lower.includes("example") || lower.includes("instance of")) {
+    scores.example += 3;
+  }
+
+  if (
+    lower.startsWith("calculate") ||
+    lower.startsWith("compute") ||
+    /find the (value|result|answer)/.test(lower)
+  ) {
+    scores.calculation += 3;
+  }
+
+  // Add scores from keyword patterns
+  for (const [type, patterns] of Object.entries(questionTypes)) {
+    patterns.forEach((pattern) => {
+      if (lower.includes(pattern)) {
+        scores[type] += 1;
+      }
+    });
+  }
+
+  // Return highest scoring type
+  return Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
 }
 
-// Function to format response based on question type
-function formatResponseByType(response, type) {
+function formatResponseByType(resp, type) {
+  // Clean response and preserve line breaks
+  let cleanResp = cleanMarkdown(resp);
+
+  // Make sure paragraphs are properly separated
+  cleanResp = cleanResp.replace(/\n\s*\n/g, "\n\n");
+
+  // Ensure single newlines are preserved
+  cleanResp = cleanResp.replace(/\n(?!\n)/g, "\n\n");
+
   switch (type) {
     case "definition":
-      return `Definition: ${response}`;
+      return cleanResp; // Keep original formatting
     case "explanation":
-      return `Explanation: ${response}`;
+      return cleanResp; // Keep original formatting
     case "example":
-      if (!response.includes("example") && !response.includes("Example")) {
-        return `Here's an example: ${response}`;
-      }
-      return response;
+      return cleanResp; // Keep original formatting
     case "calculation":
-      if (!response.includes("result") && !response.includes("answer")) {
-        return `The result is: ${response}`;
-      }
-      return response;
+      // For calculations, preserve any line breaks that might separate steps
+      return cleanResp;
     default:
-      return response;
+      return cleanResp;
   }
 }
 
-// Function to get response from Hugging Face API
 async function generateResponse(question) {
-  // Detect question category, type, and sentiment
   const category = detectCategory(question);
-  const questionType = detectQuestionType(question);
+  const qType = detectQuestionType(question);
   const sentiment = detectSentiment(question);
 
-  const lowerQuestion = question.toLowerCase();
-
-  // Check for direct matches to provide immediate responses without API call
-  // This will bypass the API call for common questions we know will work
-  if (lowerQuestion === "what is 1+1" || lowerQuestion === "1+1") {
-    return {
-      category: "math",
-      response: "The answer to 1+1 is 2.",
-      questionType,
-      sentiment,
-    };
-  }
-
-  if (lowerQuestion === "what is evaporation") {
-    return {
-      category: "science",
-      response:
-        "Evaporation is the process where liquid water changes into water vapor (gas). This happens when water molecules gain enough energy from heat to break free from the liquid's surface. Evaporation occurs at temperatures below water's boiling point and is a key part of the water cycle. It happens all around us - from wet clothes drying to puddles disappearing after rain.",
-      questionType,
-      sentiment,
-    };
-  }
-
-  if (lowerQuestion === "what is science") {
-    return {
-      category: "science",
-      response:
-        "Science is the systematic study of the natural world through observation, experimentation, and the formulation and testing of hypotheses. It aims to discover patterns and principles that help us understand how things work. The scientific method involves making observations, asking questions, forming hypotheses, conducting experiments, analyzing data, and drawing conclusions. Science encompasses many fields including physics, chemistry, biology, astronomy, geology, and more.",
-      questionType,
-      sentiment,
-    };
-  }
-
-  // For other questions, try the API with a strict timeout
   try {
-    // Using a smaller model that responds faster
-    const API_URL =
-      "https://api-inference.huggingface.co/models/facebook/bart-large-cnn";
-
-    // Format the question based on category and type
-    let input = question;
-    if (category !== "general") {
-      input = `Answer this ${category} question: ${question}`;
-    }
-
-    if (questionType === "definition") {
-      input = `Define the following: ${question}`;
-    } else if (questionType === "explanation") {
-      input = `Explain in detail: ${question}`;
-    } else if (questionType === "example") {
-      input = `Give examples for: ${question}`;
-    }
-
-    // Get the token from environment variables
-    const token = process.env.HUGGINGFACE_TOKEN;
-
-    // Use AbortController for timeout - increased to 10 seconds
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-    // Make the API request with authentication and timeout
-    const response = await fetch(API_URL, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        inputs: input,
-        options: {
-          wait_for_model: true, // Changed to true to ensure model is ready
-        },
-      }),
+    const gen = await aiClient.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: question,
     });
-
-    // Clear the timeout since we got a response
-    clearTimeout(timeoutId);
-
-    // Handle non-OK responses
-    if (!response.ok) {
-      console.error(`API request failed with status ${response.status}`);
-
-      // If we get a 504 or other error, use our fallback
-      let fallbackResponse = getDetailedResponse(category, question);
-
-      // Add sentiment-based message if negative
-      if (sentiment === "negative") {
-        fallbackResponse = `${getSentimentResponse(
-          sentiment
-        )} ${fallbackResponse}`;
-      }
-
-      return {
-        category,
-        response: formatResponseByType(fallbackResponse, questionType),
-        questionType,
-        sentiment,
-      };
-    }
-
-    const result = await response.json();
-
-    // Check if we got a valid response from the API
-    if (result && result[0] && result[0].generated_text) {
-      let apiResponse = result[0].generated_text.trim();
-
-      // Add sentiment-based message if negative
-      if (sentiment === "negative") {
-        apiResponse = `${getSentimentResponse(sentiment)} ${apiResponse}`;
-      }
-
-      return {
-        category,
-        response: formatResponseByType(apiResponse, questionType),
-        questionType,
-        sentiment,
-      };
-    } else {
-      // Use our fallback if the response format wasn't as expected
-      let fallbackResponse = getDetailedResponse(category, question);
-
-      // Add sentiment-based message if negative
-      if (sentiment === "negative") {
-        fallbackResponse = `${getSentimentResponse(
-          sentiment
-        )} ${fallbackResponse}`;
-      }
-
-      return {
-        category,
-        response: formatResponseByType(fallbackResponse, questionType),
-        questionType,
-        sentiment,
-      };
-    }
-  } catch (error) {
-    console.error("Error calling Hugging Face API:", error);
-
-    // Return a fallback response
-    let fallbackResponse = getDetailedResponse(category, question);
-
-    // Add sentiment-based message if negative
+    let text = gen.text.trim();
+    text = cleanMarkdown(text);
     if (sentiment === "negative") {
-      fallbackResponse = `${getSentimentResponse(
-        sentiment
-      )} ${fallbackResponse}`;
+      text = `I see you're frustrated. ${text}`;
     }
-
     return {
       category,
-      response: formatResponseByType(fallbackResponse, questionType),
-      questionType,
+      response: formatResponseByType(text, qType),
+      questionType: qType,
       sentiment,
     };
+  } catch (e) {
+    console.error("Gemini error:", e);
+    const examples = sampleExamples[category] || [];
+    const fallback =
+      examples.length > 0
+        ? examples[Math.floor(Math.random() * examples.length)].a
+        : getDefaultFallback(category);
+    const text = formatResponseByType(fallback, qType);
+    return { category, response: text, questionType: qType, sentiment };
   }
 }
 
-// More detailed fallback responses when the API call fails
-function getDetailedResponse(category, question) {
-  const lowerQuestion = question.toLowerCase();
-
-  // Check for exact matches first
-  if (lowerQuestion === "what is 1+1" || lowerQuestion === "1+1") {
-    return "The answer to 1+1 is 2.";
+function getDefaultFallback(category) {
+  switch (category) {
+    case "math":
+      return "Could you specify the math problem you'd like me to solve?";
+    case "science":
+      return "What science topic would you like to explore?";
+    default:
+      return "Could you please rephrase or provide more details?";
   }
-
-  if (lowerQuestion === "what is evaporation") {
-    return "Evaporation is the process where liquid water changes into water vapor (gas). This happens when water molecules gain enough energy from heat to break free from the liquid's surface. Evaporation occurs at temperatures below water's boiling point and is a key part of the water cycle. It happens all around us - from wet clothes drying to puddles disappearing after rain.";
-  }
-
-  if (lowerQuestion === "what is science") {
-    return "Science is the systematic study of the natural world through observation, experimentation, and the formulation and testing of hypotheses. It aims to discover patterns and principles that help us understand how things work. The scientific method involves making observations, asking questions, forming hypotheses, conducting experiments, analyzing data, and drawing conclusions. Science encompasses many fields including physics, chemistry, biology, astronomy, geology, and more.";
-  }
-
-  // Enhanced fallback responses by category
-
-  // Handle science category
-  if (category === "science") {
-    if (lowerQuestion.includes("precipitation")) {
-      return "Precipitation is the release of water from the atmosphere to the earth's surface in the form of rain, snow, sleet, or hail. It's a key part of the water cycle where water vapor condenses in the atmosphere and becomes heavy enough to fall to the ground. Precipitation is essential for replenishing freshwater supplies and supporting plant and animal life.";
-    }
-
-    if (lowerQuestion.includes("evaporation")) {
-      return "Evaporation is the process where liquid water changes into water vapor (gas). This happens when water molecules gain enough energy from heat to break free from the liquid's surface. Evaporation occurs at temperatures below water's boiling point and is a key part of the water cycle. It happens all around us - from wet clothes drying to puddles disappearing after rain.";
-    }
-
-    if (lowerQuestion.includes("water cycle")) {
-      return "The water cycle, also known as the hydrologic cycle, describes the continuous movement of water on, above, and below the Earth's surface. It involves processes like evaporation, condensation, precipitation, infiltration, runoff, and transpiration. This cycle is essential for maintaining Earth's water resources and supporting all life on our planet.";
-    }
-
-    if (lowerQuestion.includes("atom")) {
-      return "An atom is the basic unit of matter consisting of a nucleus (containing protons and neutrons) surrounded by electrons. Atoms are incredibly small - about 100 picometers in radius. Different arrangements of atoms form the elements on the periodic table, and atoms combine to form molecules that make up all physical substances.";
-    }
-
-    if (lowerQuestion.includes("energy")) {
-      return "Energy is the capacity to do work or produce heat. It exists in various forms such as kinetic, potential, thermal, electrical, chemical, and nuclear. According to the law of conservation of energy, energy cannot be created or destroyed, only transformed from one form to another. This fundamental principle underlies all physical processes in the universe.";
-    }
-
-    if (lowerQuestion.includes("steam")) {
-      return "Steam is water in its gaseous state. It forms when water is heated to its boiling point (100°C or 212°F at standard pressure). The visible 'steam' we commonly see is actually tiny water droplets suspended in the air, formed when the invisible water vapor cools and condenses. Steam contains a significant amount of energy and has many industrial and practical applications.";
-    }
-
-    return "That's an interesting science question! Science helps us understand the natural world through observation and experimentation. I'd be happy to explain more about this specific scientific topic if you provide more details.";
-  }
-
-  // Handle math category
-  if (category === "math") {
-    if (lowerQuestion.includes("1+1")) {
-      return "The answer to 1+1 is 2.";
-    }
-
-    // Try to extract a simple calculation
-    const mathExpression = lowerQuestion.replace(/[^0-9+\-*/()]/g, "");
-    if (mathExpression) {
-      try {
-        // Safely evaluate the expression
-        const result = Function(
-          '"use strict";return (' + mathExpression + ")"
-        )();
-        return `The answer to ${mathExpression} is ${result}.`;
-      } catch (e) {
-        console.error("Math evaluation error:", e);
-        // Fall through to general response
-      }
-    }
-
-    if (lowerQuestion.includes("algebra")) {
-      return "Algebra is a branch of mathematics dealing with symbols and the rules for manipulating these symbols to solve equations and study mathematical structures. It forms the foundation for advanced mathematics and has applications in science, engineering, economics, and many other fields.";
-    }
-
-    if (lowerQuestion.includes("geometry")) {
-      return "Geometry is the branch of mathematics concerned with the properties and relations of points, lines, surfaces, solids, and higher dimensional analogs. It helps us understand spatial relationships and has practical applications in architecture, engineering, physics, art, and many other fields.";
-    }
-
-    if (lowerQuestion.includes("calculus")) {
-      return "Calculus is a branch of mathematics focused on the study of rates of change and accumulation. It consists of two main branches: differential calculus (concerning rates of change and slopes of curves) and integral calculus (concerning accumulation of quantities and areas under or between curves). Calculus is essential for understanding physics, engineering, economics, and many scientific disciplines.";
-    }
-
-    return "I can help with your math question. In mathematics, it's important to understand the fundamental concepts and formulas. Could you provide more details about your specific math problem?";
-  }
-
-  // Handle history/geography category
-  if (category === "history") {
-    if (lowerQuestion.includes("capital of the philippines")) {
-      return "The capital of the Philippines is Manila. It's located on the island of Luzon and serves as the country's political, economic, and cultural center.";
-    }
-
-    if (lowerQuestion.includes("fish in filipino")) {
-      return "The word for 'fish' in Filipino (Tagalog) is 'isda'.";
-    }
-
-    if (lowerQuestion.includes("world war")) {
-      return "World War II (1939-1945) was a global conflict that involved most of the world's nations forming two opposing alliances: the Allies and the Axis. It was the most widespread war in history, directly involving more than 100 million people and resulting in 70 to 85 million fatalities. The war ended with the Allied victory, the founding of the United Nations, and the beginning of the Cold War.";
-    }
-
-    if (lowerQuestion.includes("renaissance")) {
-      return "The Renaissance was a period of European cultural, artistic, political, and scientific 'rebirth' following the Middle Ages. Spanning roughly the 14th to 17th centuries, it began in Italy and spread across Europe. This period was characterized by renewed interest in ancient Greek and Roman thought, the development of perspective in painting, and scientific discoveries that challenged traditional beliefs.";
-    }
-
-    return "Interesting question about history or culture! I'd be happy to share more information about this topic if you provide more details.";
-  }
-
-  // Handle literature category
-  if (category === "literature") {
-    if (lowerQuestion.includes("shakespeare")) {
-      return "William Shakespeare (1564-1616) was an English poet, playwright, and actor, widely regarded as the greatest writer in the English language. His works include 39 plays, 154 sonnets, and other verses. His plays, such as Hamlet, Romeo and Juliet, Othello, and Macbeth, have been translated into every major language and are performed more often than those of any other playwright.";
-    }
-
-    if (lowerQuestion.includes("novel")) {
-      return "A novel is a relatively long work of narrative fiction, typically written in prose and published as a book. The modern novel emerged in the early 18th century. Novels portray characters and present a sequential organization of action and scenes, focusing on the gradual unfolding of a plot. They allow authors to explore complex themes, character development, and multiple storylines.";
-    }
-
-    return "Literature encompasses written works valued for their form, emotional impact, or intellectual depth. It includes poetry, drama, fiction, and non-fiction. What specific aspect of literature would you like to explore?";
-  }
-
-  // Handle language category
-  if (category === "language") {
-    if (lowerQuestion.includes("grammar")) {
-      return "Grammar is the set of structural rules governing the composition of clauses, phrases, and words in a natural language. It includes syntax (sentence structure) and morphology (word structure). Understanding grammar helps in clear communication and effective writing across different contexts and purposes.";
-    }
-
-    if (lowerQuestion.includes("verb")) {
-      return "A verb is a word that expresses an action, occurrence, or state of being. Verbs are essential components of sentences, as they form the main part of the predicate. They can indicate when an action takes place (tense), whether it's completed or ongoing (aspect), and the relationship between the speaker and the action (mood).";
-    }
-
-    return "Language is a structured system of communication used by humans. It consists of sounds, gestures, or written symbols that express ideas according to systems of grammar and vocabulary. There are thousands of languages spoken around the world, each with its own unique features and cultural significance.";
-  }
-
-  // Handle geography category
-  if (category === "geography") {
-    if (lowerQuestion.includes("continent")) {
-      return "There are seven continents on Earth: Africa, Antarctica, Asia, Europe, North America, Australia (Oceania), and South America. They are the largest landmasses on the planet, separated by oceans and seas. Asia is the largest continent by both land area and population.";
-    }
-
-    if (lowerQuestion.includes("climate")) {
-      return "Climate refers to the long-term pattern of weather in a particular area. It's determined by factors such as temperature, humidity, precipitation, air pressure, and wind. Earth has different climate zones, including tropical, dry, temperate, continental, and polar. Climate change is the long-term alteration of temperature and typical weather patterns in a region or the planet as a whole.";
-    }
-
-    return "Geography is the study of places and the relationships between people and their environments. It explores how natural environments are shaped and how human societies develop within these contexts. Geography spans both the natural and social sciences, examining physical landscapes as well as human societies.";
-  }
-
-  // Default response for general questions
-  return "I'm not sure I understand your question completely. Could you please provide more details or rephrase it? I can help with topics related to science, math, history, literature, geography, language, and general knowledge.";
 }
 
 module.exports = {
-  initializeAI,
   generateResponse,
+  detectCategory,
+  detectQuestionType,
+  detectSentiment,
+  formatResponseByType,
 };

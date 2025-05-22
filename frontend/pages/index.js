@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
 import Navigation from "../components/Navigation";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
+  const [showNotification, setShowNotification] = useState(true);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,9 @@ export default function Home() {
         sentiment: response.data.sentiment || "",
       });
 
+      // Reset notification visibility for new messages
+      setShowNotification(true);
+
       // Replace the temporary message with the actual one and add AI response
       setMessages((prev) => {
         // Filter out the temporary message
@@ -127,20 +132,59 @@ export default function Home() {
   // Filter messages by subject category
   const filteredMessages = messages.filter((message) => {
     if (selectedSubject === "all") return true;
-    // We can't filter by category directly since it's not stored with messages
-    // This is a workaround - in production, you'd store category with each message
-    return true;
+    return message.category === selectedSubject;
   });
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, selectedSubject]);
 
   // Load messages on component mount
   useEffect(() => {
     fetchMessages();
   }, []);
+
+  useEffect(() => {
+    // Add markdown styles dynamically
+    const style = document.createElement("style");
+    style.innerHTML = `
+      .markdown-content p {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+      .markdown-content strong {
+        font-weight: bold;
+      }
+      .markdown-content em {
+        font-style: italic;
+      }
+      .markdown-content ul {
+        padding-left: 1.5em;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+      .markdown-content li {
+        margin-bottom: 0.25em;
+      }
+      .markdown-content ul li::marker {
+        color: #2196f3;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  // Add this function before your return statement
+  const resetNotification = () => {
+    setShowNotification(true);
+  };
+
+  // Then use it in handleSubmit
+  //resetNotification();
 
   return (
     <div
@@ -241,8 +285,20 @@ export default function Home() {
                       boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                     }}
                   >
-                    <div style={{ margin: "0 0 5px 0", lineHeight: "1.5" }}>
-                      {message.text}
+                    <div
+                      style={{
+                        margin: "0 0 5px 0",
+                        lineHeight: "1.5",
+                        //whiteSpace: "pre-line",
+                      }}
+                    >
+                      {message.isUser ? (
+                        message.text
+                      ) : (
+                        <div className="markdown-content">
+                          <ReactMarkdown>{message.text}</ReactMarkdown>
+                        </div>
+                      )}
                     </div>
                     <div
                       style={{
@@ -279,6 +335,87 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Notification when latest message is in a different category */}
+      {lastResponse.category &&
+        selectedSubject !== "all" &&
+        selectedSubject !== lastResponse.category &&
+        showNotification && (
+          <div
+            style={{
+              backgroundColor: "#fff3cd",
+              border: "1px solid #ffeeba",
+              color: "#856404",
+              padding: "10px 15px",
+              paddingRight: "40px", // Added padding to make room for the × button
+              borderRadius: "8px",
+              fontSize: "14px",
+              marginBottom: "15px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              position: "relative", // For absolute positioning of close button
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: "0" }}>
+                <strong>New message in a different subject!</strong> Your latest
+                AI response was categorized as{" "}
+                <strong>{lastResponse.category}</strong> and won't appear in the
+                current filter.
+              </p>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowNotification(false)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#856404",
+                fontSize: "20px",
+                cursor: "pointer",
+                padding: "0 8px",
+                position: "absolute",
+                top: "8px", // Adjusted to center vertically in the top area
+                right: "12px", // Moved slightly more to the right edge
+                fontWeight: "bold", // Made more visible
+                lineHeight: "1", // Better centering
+                width: "24px",
+                height: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: "10", // Ensure it's above other elements
+              }}
+              aria-label="Close notification"
+            >
+              ×
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectedSubject(
+                  lastResponse.category === "general"
+                    ? "all"
+                    : lastResponse.category
+                );
+                setShowNotification(false); // Also close notification when clicking View in
+              }}
+              style={{
+                backgroundColor: "#2196f3",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 12px",
+                marginLeft: "15px", // Increased to accommodate close button
+                cursor: "pointer",
+              }}
+            >
+              View in {lastResponse.category}
+            </button>
+          </div>
+        )}
 
       {/* Response Metadata Display */}
       {lastResponse.category && (

@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const aiService = require("./aiService");
+//const aiService = require("./aiService");
+const { generateResponse } = require("./aiService");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize AI model
-aiService.initializeAI();
+//aiService.initializeAI();
 
 // Connect to MongoDB
 mongoose
@@ -31,11 +32,12 @@ mongoose
 // Message schema
 const messageSchema = new mongoose.Schema({
   text: String,
-  isUser: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now },
+  isUser: Boolean,
   category: { type: String, default: "general" },
   questionType: { type: String, default: "general" },
   sentiment: { type: String, default: "neutral" },
+  createdAt: { type: Date, default: Date.now },
+  //userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 const Message = mongoose.model("Message", messageSchema);
@@ -101,12 +103,12 @@ app.post("/api/messages", async (req, res) => {
     });
     await userMessage.save();
 
-    // Generate AI response with a 15-second overall timeout
+    // Generate AI response with a 30-second overall timeout
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Request timeout")), 15000)
+      setTimeout(() => reject(new Error("Request timeout")), 30000)
     );
 
-    const aiResultPromise = aiService.generateResponse(req.body.text);
+    const aiResultPromise = generateResponse(req.body.text);
 
     // Race between the AI response and the timeout
     const aiResult = await Promise.race([
@@ -127,6 +129,10 @@ app.post("/api/messages", async (req, res) => {
     const aiMessage = new Message({
       text: aiResult.response,
       isUser: false,
+      category: aiResult.category,
+      questionType: aiResult.questionType,
+      sentiment: aiResult.sentiment,
+      //userId: user ? user._id : null,
     });
     await aiMessage.save();
 

@@ -4,12 +4,17 @@
   "description": "Backend API for BrainBytes",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "jest"
   },
   "dependencies": {
+    "@google/genai": "^0.14.1",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "mongoose": "^5.13.7",
-    "cors": "^2.8.5",
     "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

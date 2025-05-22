@@ -55,52 +55,63 @@ export default function Dashboard() {
 
   // Analyze messages for statistics
   const analyzeMessages = (msgs) => {
-    // Filter only user questions
+    // Filter only user questions and AI responses
     const userQuestions = msgs.filter((msg) => msg.isUser);
-
-    // Get corresponding AI responses
     const aiResponses = msgs.filter((msg) => !msg.isUser);
 
-    // Calculate stats
+    // Initialize counters
     const totalQuestions = userQuestions.length;
     const byCategory = {};
     const byQuestionType = {};
     const sentiment = { positive: 0, neutral: 0, negative: 0 };
 
-    // This is a simplified analysis since we don't store category/type with messages
-    // In a real implementation, we would store this data with each message
-    userQuestions.forEach((question, index) => {
-      // For demonstration, we'll assign random categories and types
-      // In reality, this would come from your API responses
-      const categories = [
-        "math",
-        "science",
-        "history",
-        "geography",
-        "literature",
-        "language",
-      ];
-      const types = ["definition", "explanation", "example", "calculation"];
-      const sentiments = ["positive", "neutral", "negative"];
+    // Process AI responses for accurate analytics
+    aiResponses.forEach((response) => {
+      // Count by category
+      if (response.category) {
+        byCategory[response.category] =
+          (byCategory[response.category] || 0) + 1;
+      }
 
-      const randomCategory =
-        categories[Math.floor(Math.random() * categories.length)];
-      const randomType = types[Math.floor(Math.random() * types.length)];
-      const randomSentiment =
-        sentiments[Math.floor(Math.random() * sentiments.length)];
+      // Count by question type
+      if (response.questionType) {
+        byQuestionType[response.questionType] =
+          (byQuestionType[response.questionType] || 0) + 1;
+      }
 
-      // Update stats
-      byCategory[randomCategory] = (byCategory[randomCategory] || 0) + 1;
-      byQuestionType[randomType] = (byQuestionType[randomType] || 0) + 1;
-      sentiment[randomSentiment] = sentiment[randomSentiment] + 1;
+      // Count by sentiment
+      if (response.sentiment && sentiment.hasOwnProperty(response.sentiment)) {
+        sentiment[response.sentiment] += 1;
+      }
     });
 
+    // Set the stats state
     setStats({
       totalQuestions,
       byCategory,
       byQuestionType,
       sentiment,
     });
+  };
+
+  // Calculate top subjects excluding "general" category
+  const calculateTopSubjects = (messages) => {
+    const subjectCounts = {};
+
+    messages
+      .filter((msg) => !msg.isUser)
+      .forEach((msg) => {
+        if (msg.category && msg.category !== "general") {
+          subjectCounts[msg.category] = (subjectCounts[msg.category] || 0) + 1;
+        }
+      });
+
+    // If we have no categorized messages, don't show an empty chart
+    if (Object.keys(subjectCounts).length === 0) {
+      return { "Not enough data": 1 };
+    }
+
+    return subjectCounts;
   };
 
   return (
@@ -194,7 +205,7 @@ export default function Dashboard() {
               }}
             >
               <h3 style={{ marginTop: 0 }}>Top Subject</h3>
-              {Object.entries(stats.byCategory).length > 0 ? (
+              {Object.keys(calculateTopSubjects(messages)).length > 0 ? (
                 <p
                   style={{
                     fontSize: "24px",
@@ -202,16 +213,16 @@ export default function Dashboard() {
                     color: "#ff9800",
                   }}
                 >
-                  {Object.entries(stats.byCategory)
+                  {Object.entries(calculateTopSubjects(messages))
                     .sort((a, b) => b[1] - a[1])[0][0]
                     .charAt(0)
                     .toUpperCase() +
-                    Object.entries(stats.byCategory)
+                    Object.entries(calculateTopSubjects(messages))
                       .sort((a, b) => b[1] - a[1])[0][0]
                       .slice(1)}
                 </p>
               ) : (
-                <p>No data yet</p>
+                <p>No data available</p>
               )}
             </div>
 
