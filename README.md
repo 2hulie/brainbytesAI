@@ -1,5 +1,9 @@
 # BrainBytes AI Tutoring Platform
 
+## Documentation
+
+- [Full Platform Documentation](docs/Documentations.md)
+
 ## Project Overview
 BrainBytes is an AI-powered tutoring platform designed to provide accessible academic
 assistance to Filipino students. This project implements the platform using modern DevOps
@@ -68,8 +72,3 @@ This diagram shows:
 - **Vonne Carlo P**: Implement message history storage  
 - **Rei Emmanuel C**: Create project documentation  
 - **All Team Members**: Final testing and preparation for submission
-
-## Documentation
-
-- [Full Platform Documentation](./Documentations.md)
-
