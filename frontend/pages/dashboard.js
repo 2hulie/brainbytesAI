@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import Navigation from "../components/Navigation";
 
 export default function Dashboard() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [stats, setStats] = useState({
     totalQuestions: 0,
     byCategory: {},
@@ -16,22 +19,25 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login"); // redirect if no token
+      return;
+    }
+
     const fetchData = async () => {
       try {
-        // Get user ID from localStorage
-        const userId = localStorage.getItem("brainbytesUserId");
-
-        // Fetch user profile if ID exists
-        if (userId) {
-          const userResponse = await axios.get(
-            `http://localhost:3000/api/users/${userId}`
-          );
-          setUser(userResponse.data);
-        }
+        // Fetch user profile using token
+        const userResponse = await axios.get(
+          "http://localhost:3000/api/auth/profile",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUser(userResponse.data);
 
         // Fetch messages
         const messagesResponse = await axios.get(
-          "http://localhost:3000/api/messages"
+          "http://localhost:3000/api/messages",
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessages(messagesResponse.data);
 
@@ -51,7 +57,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [router]);
 
   // Analyze messages for statistics
   const analyzeMessages = (msgs) => {
@@ -310,7 +316,9 @@ export default function Dashboard() {
                         margin: "5px 0",
                         backgroundColor: "#e3f2fd",
                         borderRadius: "8px",
+                        cursor: "pointer"
                       }}
+                      onClick={() => router.push(`/?question=${encodeURIComponent(message.text)}`)} // <-- Add this line
                     >
                       <div>{message.text}</div>
                       <div
@@ -352,13 +360,13 @@ export default function Dashboard() {
                       margin: "5px 0",
                       backgroundColor: "#e8f5e9",
                       borderRadius: "8px",
+                      cursor: "pointer"
                     }}
+                    onClick={() => setSelectedMaterial(material)}
                   >
                     <div style={{ fontWeight: "bold" }}>{material.topic}</div>
                     <div style={{ fontSize: "14px", marginTop: "5px" }}>
-                      Subject:{" "}
-                      {material.subject.charAt(0).toUpperCase() +
-                        material.subject.slice(1)}
+                      Subject: {material.subject.charAt(0).toUpperCase() + material.subject.slice(1)}
                     </div>
                   </div>
                 ))}
@@ -368,6 +376,62 @@ export default function Dashboard() {
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedMaterial && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setSelectedMaterial(null)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              padding: "32px 24px",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+              minWidth: 320,
+              maxWidth: 500,
+              textAlign: "left",
+              fontFamily: "Nunito, sans-serif",
+              position: "relative",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedMaterial(null)}
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 16,
+                background: "none",
+                border: "none",
+                fontSize: "22px",
+                color: "#888",
+                cursor: "pointer",
+              }}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 style={{ color: "#2196f3", marginTop: 1}}>{selectedMaterial.topic}</h2>
+            <div style={{ color: "#555", marginBottom: 8 }}>
+              Subject: {selectedMaterial.subject.charAt(0).toUpperCase() + selectedMaterial.subject.slice(1)}
+            </div>
+            <div style={{ marginTop: 16, color: "#222", whiteSpace: "pre-line" }}>
+              {selectedMaterial.content}
             </div>
           </div>
         </div>

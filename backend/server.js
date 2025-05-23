@@ -1,11 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 //const aiService = require("./aiService");
 const { generateResponse } = require("./aiService");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 // Middleware
 app.use(cors());
@@ -37,7 +41,7 @@ const messageSchema = new mongoose.Schema({
   questionType: { type: String, default: "general" },
   sentiment: { type: String, default: "neutral" },
   createdAt: { type: Date, default: Date.now },
-  //userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "UserProfile" },
 });
 
 const Message = mongoose.model("Message", messageSchema);
@@ -57,9 +61,12 @@ const MessagePair = mongoose.model("MessagePair", messagePairSchema);
 const userProfileSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
   preferredSubjects: [String],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
 
 const UserProfile = mongoose.model("UserProfile", userProfileSchema);
@@ -78,15 +85,192 @@ const LearningMaterial = mongoose.model(
   learningMaterialSchema
 );
 
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
+
 // API Routes
+app.get("/api/protected", authMiddleware, (req, res) => {
+  res.json({ message: "You are authorized", userId: req.user.userId });
+});
+
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the BrainBytes API" });
 });
 
-// Get all messages
-app.get("/api/messages", async (req, res) => {
+// Register Route
+app.post("/api/auth/register", async (req, res) => {
   try {
-    const messages = await Message.find().sort({ createdAt: 1 });
+    const { name, email, password, preferredSubjects } = req.body;
+
+    const existingUser = await UserProfile.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new UserProfile({
+      name,
+      email,
+      password: hashedPassword,
+      preferredSubjects,
+    });
+
+    await newUser.save();
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        preferredSubjects: newUser.preferredSubjects,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Login Route
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UserProfile.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        preferredSubjects: user.preferredSubjects,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Forgot Password
+app.post("/api/auth/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await UserProfile.findOne({ email });
+    if (!user) {
+      // Always respond with success to prevent email enumeration
+      return res.json({ message: "If this email is registered, a reset link has been sent." });
+    }
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 1000 * 60 * 60; // 1 hour
+    await user.save();
+
+    // In production, send an email here.
+    // For dev, return the reset link in the response:
+    const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    res.json({ message: "If this email is registered, a reset link has been sent.", resetLink });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reset Password
+app.post("/api/auth/reset-password", async (req, res) => {
+  try {
+    const { email, token, password } = req.body;
+    const user = await UserProfile.findOne({
+      email,
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired token." });
+    }
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    res.json({ message: "Password has been reset successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get current user's profile (protected)
+app.get("/api/auth/profile", authMiddleware, async (req, res) => {
+  try {
+    const user = await UserProfile.findById(req.user.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update current user's profile (protected)
+app.put("/api/auth/profile", authMiddleware, async (req, res) => {
+  try {
+    const { name, preferredSubjects } = req.body;
+
+    const updatedUser = await UserProfile.findByIdAndUpdate(
+      req.user.userId,
+      {
+        name,
+        preferredSubjects,
+        updatedAt: Date.now(),
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all messages
+app.get("/api/messages", authMiddleware, async (req, res) => {
+  try {
+    const messages = await Message.find({ userId: req.user.userId }).sort({ createdAt: 1 });
     res.json(messages);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -94,23 +278,21 @@ app.get("/api/messages", async (req, res) => {
 });
 
 // Create a new message and get AI response
-app.post("/api/messages", async (req, res) => {
+app.post("/api/messages", authMiddleware, async (req, res) => {
   try {
-    // Save user message
+    // 1. Save user message (initially without category)
     const userMessage = new Message({
       text: req.body.text,
       isUser: true,
+      userId: req.user.userId,
     });
     await userMessage.save();
 
-    // Generate AI response with a 30-second overall timeout
+    // 2. Generate AI response
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error("Request timeout")), 30000)
     );
-
     const aiResultPromise = generateResponse(req.body.text);
-
-    // Race between the AI response and the timeout
     const aiResult = await Promise.race([
       aiResultPromise,
       timeoutPromise,
@@ -125,18 +307,24 @@ app.post("/api/messages", async (req, res) => {
       };
     });
 
-    // Save AI response
+    // 3. Update user message with AI's detected category, questionType, sentiment
+    userMessage.category = aiResult.category;
+    userMessage.questionType = aiResult.questionType;
+    userMessage.sentiment = aiResult.sentiment;
+    await userMessage.save();
+
+    // 4. Save AI message with same metadata
     const aiMessage = new Message({
       text: aiResult.response,
       isUser: false,
       category: aiResult.category,
       questionType: aiResult.questionType,
       sentiment: aiResult.sentiment,
-      //userId: user ? user._id : null,
+      userId: req.user.userId,
     });
     await aiMessage.save();
 
-    // Return both messages
+    // 5. Return both messages
     res.status(201).json({
       userMessage,
       aiMessage,
@@ -147,96 +335,6 @@ app.post("/api/messages", async (req, res) => {
   } catch (err) {
     console.error("Error in /api/messages route:", err);
     res.status(400).json({ error: err.message });
-  }
-});
-
-// User Profile CRUD Operations
-// Create a new user profile
-app.post("/api/users", async (req, res) => {
-  try {
-    const { name, email, preferredSubjects } = req.body;
-
-    // Check if user already exists
-    const existingUser = await UserProfile.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ error: "User with this email already exists" });
-    }
-
-    const userProfile = new UserProfile({
-      name,
-      email,
-      preferredSubjects: preferredSubjects || [],
-    });
-
-    await userProfile.save();
-    res.status(201).json(userProfile);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Get all user profiles
-app.get("/api/users", async (req, res) => {
-  try {
-    const users = await UserProfile.find();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get a specific user profile
-app.get("/api/users/:id", async (req, res) => {
-  try {
-    const user = await UserProfile.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Update a user profile
-app.put("/api/users/:id", async (req, res) => {
-  try {
-    const { name, email, preferredSubjects } = req.body;
-    const updatedUser = await UserProfile.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        email,
-        preferredSubjects,
-        updatedAt: Date.now(),
-      },
-      { new: true }
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.json(updatedUser);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Delete a user profile
-app.delete("/api/users/:id", async (req, res) => {
-  try {
-    const deletedUser = await UserProfile.findByIdAndDelete(req.params.id);
-
-    if (!deletedUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.json({ message: "User profile deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 

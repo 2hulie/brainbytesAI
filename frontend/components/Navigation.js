@@ -71,7 +71,7 @@ export default function Navigation({ user }) {
               transition: "background-color 0.2s",
             }}
           >
-            {user ? user.name : "Sign In"}
+            Profile
           </a>
         </Link>
       </div>

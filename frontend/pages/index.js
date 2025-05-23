@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
@@ -5,6 +6,8 @@ import Navigation from "../components/Navigation";
 import ReactMarkdown from "react-markdown";
 
 export default function Home() {
+  const router = useRouter();
+  const messageRefs = useRef({});
   const [showNotification, setShowNotification] = useState(true);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -29,29 +32,42 @@ export default function Home() {
     "language",
   ];
 
-  // Fetch user profile if ID exists in localStorage
+  // Fetch user profile 
   useEffect(() => {
-    const fetchUser = async () => {
-      const userId = localStorage.getItem("brainbytesUserId");
-      if (userId) {
-        try {
-          const response = await axios.get(
-            `http://localhost:3000/api/users/${userId}`
-          );
-          setUser(response.data);
-        } catch (error) {
-          console.error("Error fetching user:", error);
-        }
+    const syncUser = () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.replace("/login");
+      }
+      if (token) {
+        axios.get("http://localhost:3000/api/auth/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(res => setUser(res.data))
+        .catch(() => setUser(null));
+      } else {
+        setUser(null);
       }
     };
 
-    fetchUser();
+    // Listen for storage changes (e.g., login in another tab)
+    window.addEventListener("storage", syncUser);
+
+    // Also call on mount
+    syncUser();
+
+    return () => {
+      window.removeEventListener("storage", syncUser);
+    };
   }, []);
 
   // Fetch messages from the API
   const fetchMessages = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/messages");
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:3000/api/messages", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setMessages(response.data);
       setLoading(false);
     } catch (error) {
@@ -59,6 +75,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+
 
   // Submit a new message
   const handleSubmit = async (e) => {
@@ -80,9 +97,12 @@ export default function Home() {
       setMessages((prev) => [...prev, tempUserMsg]);
 
       // Send to backend and get AI response
-      const response = await axios.post("http://localhost:3000/api/messages", {
-        text: userMsg,
-      });
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:3000/api/messages",
+        { text: userMsg },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       // Store response metadata
       setLastResponse({
@@ -178,6 +198,19 @@ export default function Home() {
     };
   }, []);
 
+    // Scroll to the question if present in chat history (from dashboard)
+    useEffect(() => {
+    if (router.query.question && filteredMessages.length > 0) {
+      // Find the first user message that matches the question text in the filtered list
+      const found = filteredMessages.find(
+        (msg) => msg.text === router.query.question && msg.isUser
+      );
+      if (found && messageRefs.current[found._id]) {
+        messageRefs.current[found._id].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [router.query.question, filteredMessages]);
+
   // Add this function before your return statement
   const resetNotification = () => {
     setShowNotification(true);
@@ -262,13 +295,16 @@ export default function Home() {
             {filteredMessages.length === 0 ? (
               <div style={{ textAlign: "center", padding: "40px 20px" }}>
                 <h3>Welcome to BrainBytes AI Tutor!</h3>
-                <p>Ask me any question about math, science, or history.</p>
+                <p>Ask me any question about anything.</p>
               </div>
             ) : (
               <ul style={{ listStyleType: "none", padding: 0 }}>
                 {filteredMessages.map((message) => (
                   <li
                     key={message._id}
+                    ref={el => {
+                      if (el) messageRefs.current[message._id] = el;
+                    }}
                     style={{
                       display: "flex",
                       flexDirection: "column",
@@ -472,6 +508,3 @@ export default function Home() {
     </div>
   );
 }
-
-// Note: Make sure to run the backend server on port 3000 for this to work.
-// You can change the API URL in the axios calls if your backend is running on a different port or domain.
