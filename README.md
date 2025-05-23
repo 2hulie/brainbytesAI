@@ -4,13 +4,6 @@
 
 BrainBytes is an AI-powered tutoring platform designed to provide accessible academic assistance to Filipino students. This project implements the platform using modern DevOps practices and containerization.
 
-## Team Members
-
-- **Rei Emmanuel C** - Team Lead - [lr.recristobal@mmdc.mcl.edu.ph]
-- **Kristine E** - Backend Developer - [lr.kencabo@mmdc.mcl.edu.ph]
-- **Jodienne E** - Frontend Developer - [lr.jesperas@mmdc.mcl.edu.ph]
-- **Vonne Carlo P** - DevOps Engineer - [lr.vcpediengco@mmdc.mcl.edu.ph]
-
 ## Technology Stack
 
 - **Frontend**: Next.js
@@ -280,3 +273,12 @@ HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: 
 - Ensure that the server is running and accessible at the specified port.
 - Check the logs for any errors during the build or startup process.
 - Verify that the correct port is being used in the browser.
+
+---
+
+## Team Members
+
+- **Rei Emmanuel C** - Team Lead - [lr.recristobal@mmdc.mcl.edu.ph]
+- **Kristine E** - Backend Developer - [lr.kencabo@mmdc.mcl.edu.ph]
+- **Jodienne E** - Frontend Developer - [lr.jesperas@mmdc.mcl.edu.ph]
+- **Vonne Carlo P** - DevOps Engineer - [lr.vcpediengco@mmdc.mcl.edu.ph]
