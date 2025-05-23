@@ -23,9 +23,14 @@ BrainBytes is an AI-powered tutoring platform designed to provide accessible aca
 ![Containerized System Architecture](docs/architecture.png)
 
 This diagram shows:
-- Container names and port mappings
-- Data flow between components
-- AI model integration service
+
+- Major frontend pages and components
+- REST API flow between frontend and backend
+- Backend endpoints for auth, profile, messages, and learning materials
+- Persistent data storage in MongoDB
+- AI model integration via Gemini API
+- Docker containers for frontend, backend, and database
+- Data flow and service interactions across the stack
 
 ## Instructions for Running the Application
 
