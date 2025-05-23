@@ -9,6 +9,7 @@ BrainBytes is an AI-powered tutoring platform designed to provide accessible aca
 - **Frontend**: Next.js
 - **Backend**: Node.js
 - **Database**: MongoDB Atlas
+- **AI Model Integration**: Google Gemini API 
 - **Containerization**: Docker
 - **CI/CD**: GitHub Actions
 
