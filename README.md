@@ -263,20 +263,6 @@ We utilized MongoDB with the following collections:
 
 ---
 
-## Troubleshooting
-
-If you encounter issues such as:
-
-```
-HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /reset-password?token=${token}&email=${encodeURIComponent(email)} (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f8affe15b50>: Failed to establish a new connection: [Errno 111] Connection refused'))
-```
-
-- Ensure that the server is running and accessible at the specified port.
-- Check the logs for any errors during the build or startup process.
-- Verify that the correct port is being used in the browser.
-
----
-
 ## Team Members
 
 - **Rei Emmanuel C** - Team Lead - [lr.recristobal@mmdc.mcl.edu.ph]
