@@ -301,15 +301,8 @@ We utilized MongoDB with the following collections:
 - Uses keyword matching and pattern recognition.
 - Improves response accuracy by providing subject-specific context.
 
-### Question Type Detection
-
-- Identifies question types: definitions, explanations, examples, and calculations.
-- Formats responses appropriately based on question type.
-- Customizes API prompts for better answers.
-
 ### Sentiment Analysis
 
-- Detects user frustration or confusion through keyword analysis.
 - Provides empathetic responses when negative sentiment is detected.
 - Adapts tone to improve user experience.
 
