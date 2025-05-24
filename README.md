@@ -100,47 +100,105 @@ This diagram shows:
 
 ---
 
-### User Profiles API
+<h2>User Authentication &amp; Profile API</h2>
 
-- **Endpoint**: /api/users
-  - **Method**: GET
-  - **Description**: Get all user profiles
-  - **Request Body**: None
-  - **Response**: Array of user objects
-
-- **Endpoint**: /api/users
-  - **Method**: POST
-  - **Description**: Create a new user profile
-  - **Request Body**: User data
-  - **Response**: Created user object
-
-- **Endpoint**: /api/users/:id
-  - **Method**: GET
-  - **Description**: Get a specific user
-  - **Request Body**: None
-  - **Response**: User object
-
-- **Endpoint**: /api/users/:id
-  - **Method**: PUT
-  - **Description**: Update a user profile
-  - **Request Body**: Updated user data
-  - **Response**: Updated user object
-
-- **Endpoint**: /api/users/:id
-  - **Method**: DELETE
-  - **Description**: Delete a user profile
-  - **Request Body**: None
-  - **Response**: Success message
-
-#### User Data Format:
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
+<h3>Register a New User</h3>
+<ul>
+  <li><strong>Endpoint:</strong> <code>POST /api/auth/register</code></li>
+  <li><strong>Description:</strong> Register a new user account.</li>
+  <li><strong>Request Body:</strong>
+    <pre>{
+  "name": "Your Name",
+  "email": "you@example.com",
+  "password": "yourpassword",
   "preferredSubjects": ["math", "science"]
-}
-```
+}</pre>
+  </li>
+  <li><strong>Response:</strong>
+    <pre>{
+  "message": "User registered successfully",
+  "token": "&lt;jwt_token&gt;",
+  "user": {
+    "id": "&lt;user_id&gt;",
+    "name": "Your Name",
+    "email": "you@example.com",
+    "preferredSubjects": ["math", "science"]
+  }
+}</pre>
+  </li>
+</ul>
+
+<h3>Login</h3>
+<ul>
+  <li><strong>Endpoint:</strong> <code>POST /api/auth/login</code></li>
+  <li><strong>Description:</strong> Authenticate a user and receive a JWT token.</li>
+  <li><strong>Request Body:</strong>
+    <pre>{
+  "email": "you@example.com",
+  "password": "yourpassword"
+}</pre>
+  </li>
+  <li><strong>Response:</strong>
+    <pre>{
+  "message": "Login successful",
+  "token": "&lt;jwt_token&gt;",
+  "user": {
+    "id": "&lt;user_id&gt;",
+    "name": "Your Name",
+    "email": "you@example.com",
+    "preferredSubjects": ["math", "science"]
+  }
+}</pre>
+  </li>
+</ul>
+
+<h3>Get Current User Profile</h3>
+<ul>
+  <li><strong>Endpoint:</strong> <code>GET /api/auth/profile</code></li>
+  <li><strong>Auth Required:</strong> Yes (Bearer token)</li>
+  <li><strong>Description:</strong> Get the profile of the currently authenticated user.</li>
+  <li><strong>Headers:</strong>
+    <pre>Authorization: Bearer &lt;jwt_token&gt;</pre>
+  </li>
+  <li><strong>Response:</strong>
+    <pre>{
+  "name": "Your Name",
+  "email": "you@example.com",
+  "preferredSubjects": ["math", "science"],
+  "createdAt": "...",
+  "updatedAt": "...",
+  "_id": "&lt;user_id&gt;"
+}</pre>
+  </li>
+</ul>
+
+<h3>Update Current User Profile</h3>
+<ul>
+  <li><strong>Endpoint:</strong> <code>PUT /api/auth/profile</code></li>
+  <li><strong>Auth Required:</strong> Yes (Bearer token)</li>
+  <li><strong>Description:</strong> Update the profile of the currently authenticated user.</li>
+  <li><strong>Headers:</strong>
+    <pre>Authorization: Bearer &lt;jwt_token&gt;</pre>
+  </li>
+  <li><strong>Request Body:</strong>
+    <pre>{
+  "name": "New Name",
+  "preferredSubjects": ["math", "history"]
+}</pre>
+  </li>
+  <li><strong>Response:</strong>
+    <pre>{
+  "_id": "&lt;user_id&gt;",
+  "name": "New Name",
+  "email": "you@example.com",
+  "preferredSubjects": ["math", "history"],
+  "createdAt": "...",
+  "updatedAt": "..."
+}</pre>
+  </li>
+</ul>
+
+<p><strong>Note:</strong> All <code>/api/auth/profile</code> endpoints require a valid JWT token in the <code>Authorization</code> header.</p>
 
 ---
 
