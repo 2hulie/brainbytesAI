@@ -438,6 +438,7 @@ export default function Home() {
 
       <form onSubmit={handleSubmit} style={{ display: "flex" }}>
         <input
+          id="messageInput"  // ✅ Add this by(Vonne)
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
@@ -453,6 +454,7 @@ export default function Home() {
           disabled={isTyping}
         />
         <button
+          id="sendButton"  // ✅ Add this by(Vonne)
           type="submit"
           style={{
             padding: "14px 24px",

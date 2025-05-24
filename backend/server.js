@@ -4,7 +4,8 @@ const cors = require("cors");
 //const aiService = require("./aiService");
 const { generateResponse } = require("./aiService");
 
-const app = express();
+const app = require('./app');
+//const app = express();//
 const PORT = process.env.PORT || 3000;
 
 // Middleware

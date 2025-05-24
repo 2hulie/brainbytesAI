@@ -13,5 +13,8 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-markdown": "^10.1.0"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.9.0"
   }
 }
