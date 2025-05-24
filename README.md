@@ -9,9 +9,9 @@ BrainBytes is an AI-powered tutoring platform designed to provide accessible aca
 
 - **Frontend**: Next.js
 - **Backend**: Node.js
-- **Database**: MongoDB Atlas
+- **Database**: MongoDB (Docker Container)
 - **AI Model Integration**: Google Gemini API 
-- **Containerization**: Docker
+- **Containerization**: Docker, Docker Compose
 - **CI/CD**: GitHub Actions
 
 ## Docker Version Information
@@ -256,8 +256,12 @@ We utilized MongoDB with the following collections:
 ```json
 {
   "text": String,
-  "isUser ": Boolean,
-  "createdAt": Date
+  "isUser": Boolean,
+  "category": String,
+  "questionType": String,
+  "sentiment": String,
+  "createdAt": Date,
+  "userId": ObjectId
 }
 ```
 
@@ -269,9 +273,10 @@ We utilized MongoDB with the following collections:
 {
   "name": String,
   "email": String,
+  "password": String,
   "preferredSubjects": [String],
   "createdAt": Date,
-  "updatedAt": Date
+  "updatedAt": Date,
 }
 ```
 
