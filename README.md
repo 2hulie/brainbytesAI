@@ -1,3 +1,4 @@
+![BrainBytes AI](docs/bb_logo.png)
 # BrainBytes AI Tutoring Platform
 
 ## Overview
