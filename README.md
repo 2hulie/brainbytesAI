@@ -35,39 +35,49 @@ This diagram shows:
 
 ## Instructions for Running the Application
 
-1. Download the zip file of the repository.
-2. Extract the zip file.
-3. Open Command Prompt or PowerShell.
-4. Navigate to the project directory:
+<p>This guide explains how to set up and run the BrainBytes AI tutoring platform using Docker containers.</p>
 
-   ```bash
-   cd brainbytes-multi-container
-   ```
+  <h3>1. Prerequisites</h3>
+  <p>Before you begin, ensure you have the following installed:</p>
+  <ul>
+    <li>Docker Desktop (v4.0.0 or higher)</li>
+    <li>Git</li>
+    <li>Node.js (v16 or higher, for local development only)</li>
+  </ul>
 
-5. Open Docker Desktop (install it if you haven't already).
-6. In the terminal, still in the `brainbytes-multi-container` directory, run:
+  <h3>2. Getting Started</h3>
 
-   ```bash
-   docker-compose build
-   ```
+  <h4>Clone the repository</h4>
+  <pre><code>git clone https://github.com/Sempuri/brainbytesAI.git
+cd brainbytesAI
+git checkout development
+</code></pre>
 
-   The terminal should show the build process output.
+  <h4>Configure environment variables</h4>
+  <pre><code>cp .env.example .env
+# Edit .env file with your configuration
+</code></pre>
+  <p>Required variables:</p>
+  <ul>
+    <li><code>GEMINI_API_KEY</code> (for Google Gemini AI)</li>
+    <li><code>JWT_SECRET</code> (for backend authentication)</li>
+  </ul>
 
-7. Then, run:
+  <h4>Start the containers</h4>
+  <pre><code>docker-compose up -d
+</code></pre>
 
-   ```bash
-   docker-compose up
-   ```
+  <h4>Verify the setup</h4>
+  <p>You should see all services running with status &ldquo;Up&rdquo;.</p>
+  <pre><code>docker-compose ps
+</code></pre>
 
-   The application will start running.
-
-8. Open a web browser and go to:
-
-   ```
-   http://localhost:8080/
-   ```
-
-   You should see the application interface.
+  <h3>3. Access the application</h3>
+  <ul>
+    <li><strong>Frontend:</strong> <a href="http://localhost:8080">http://localhost:8080</a></li>
+    <li><strong>Backend API:</strong> <a href="http://localhost:3000">http://localhost:3000</a></li>
+    <li><strong>MongoDB (development):</strong> <code>mongodb://localhost:27017/brainbytes</code></li>
+  </ul>
 
 ---
 
