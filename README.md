@@ -34,40 +34,167 @@ This diagram shows:
 - Data flow and service interactions across the stack
 
 ## Instructions for Running the Application
+<h3>Method 1: ZIP Download &amp; Docker Compose</h3>
+  
+  <ol>
+    <li>
+      <strong>Download the code</strong><br>
+      Navigate to the GitHub repository and click <em>Code → Download ZIP</em>.  
+      Save the ZIP file to your computer.
+    </li>
+    <li>
+      <strong>Unzip the folder</strong><br>
+      <ul>
+        <li><strong>Windows:</strong> Right‑click the ZIP &rarr; <em>Extract All…</em></li>
+        <li><strong>macOS:</strong> Double‑click the ZIP</li>
+      </ul>
+      A folder named <code>brainbytes-multi-container</code> should appear.
+    </li>
+    <li>
+      <strong>Open your terminal</strong><br>
+      <ul>
+        <li><strong>Windows:</strong> Press <kbd>Win</kbd> + <kbd>R</kbd>, type <code>cmd</code> or <code>powershell</code>, press <kbd>Enter</kbd></li>
+        <li><strong>macOS:</strong> Press <kbd>⌘</kbd> + <kbd>Space</kbd>, type <code>Terminal</code>, press <kbd>Enter</kbd></li>
+      </ul>
+    </li>
+    <li>
+      <strong>Change into the project folder</strong><br>
+      In the terminal, run:<br>
+      <pre><code>cd path/to/brainbytes-multi-container</code></pre>
+      Replace <code>path/to</code> with where you extracted the ZIP.
+    </li>
+    <li>
+    <h4>Configure Environment Variables</h4>
+      <p>
+        The app needs a few secret keys to run. Create your own <code>.env</code> file:
+      </p>
+      <pre><code>cp .env.example .env</code></pre>
+      <p>Then open <code>.env</code> in any text editor and fill in:</p>
+      <ul>
+        <li><code>GEMINI_API_KEY</code> — Your Google Gemini API key</li>
+        <li><code>JWT_SECRET</code> — A random string used to sign authentication tokens</li>
+      </ul>
+      <p>If you have never used an <code>.env</code> file before, it simply lists lines like <code>KEY=value</code> that your app reads at startup.</p>
+    </li>
+    <li>
+      <strong>Start Docker Desktop</strong><br>
+      Launch <em>Docker Desktop</em> and wait until the whale icon appears in your system tray (Windows) or menu bar (macOS).
+    </li>
+    <li>
+      <strong>Build the Docker images</strong><br>
+      In your terminal (inside the project folder), run:<br>
+      <pre><code>docker-compose build</code></pre>
+      This can take a few minutes. You’ll see a series of “Step 1/…”, “Step 2/…” messages.
+    </li>
+    <li>
+      <strong>Run the application</strong><br>
+      Still in the same terminal, run:<br>
+      <pre><code>docker-compose up</code></pre>
+      Keep this window open to watch for any errors.
+    </li>
+    <li>
+      <strong>Open the app in your browser</strong><br>
+      Go to:<br>
+      <pre><code>http://localhost:8080/</code></pre>
+      You should see the BrainBytes interface. If you get an error, confirm Docker Desktop is running and check for build errors above.
+    </li>
+  </ol>
+  
+  <h3>Troubleshooting</h3>
+  <ul>
+    <li>
+      <strong><code>docker-compose not found</code>:</strong>  
+      Ensure Docker Desktop is installed and that you reopened your terminal after installation.
+    </li>
+    <li>
+      <strong>Port 8080 already in use</strong>:<br>
+      Stop the other service or edit <code>docker-compose.yml</code> (e.g. change <code>8080:80</code> to <code>8081:80</code>).
+    </li>
+    <li>
+      <strong>Unexpected build/runtime errors</strong>:<br>
+      View detailed logs with:<br>
+      <pre><code>docker-compose logs</code></pre>
+    </li>
+  </ul>
 
-1. Download the zip file of the repository.
-2. Extract the zip file.
-3. Open Command Prompt or PowerShell.
-4. Navigate to the project directory:
+<hr>
+<h3>Method 2: Local Development with Git & Docker</h3>
+  <p>
+    Follow these steps to clone the source code, install dependencies, configure secrets, and run all services via Docker Compose. This method is best if you plan to customize or contribute to BrainBytes.
+  </p>
 
-   ```bash
-   cd brainbytes-multi-container
-   ```
+  <h4>1. Open Your Terminal</h4>
+  <p>
+    Depending on your operating system, open one of these:
+  </p>
+  <ul>
+    <li><strong>Windows:</strong> Start &rarr; type <code>cmd</code> or <code>powershell</code> and press Enter.</li>
+    <li><strong>macOS:</strong> Press <code>⌘ Space</code>, type <code>Terminal</code>, and press Enter.</li>
+    <li><strong>Alternatively:</strong> In VS Code, press <kbd>Ctrl</kbd> + <kbd>`</kbd> (backtick) to open the built‑in terminal.</li>
+  </ul>
 
-5. Open Docker Desktop (install it if you haven't already).
-6. In the terminal, still in the `brainbytes-multi-container` directory, run:
+  <h4>2. Clone the Repository</h4>
+  <p>
+    “Cloning” means copying the code from GitHub to your computer. In your terminal, paste:
+  </p>
+  <pre><code>git clone https://github.com/Sempuri/brainbytesAI.git
+cd brainbytesAI
+git checkout development
+</code></pre>
+  <p>
+    - <code>git clone &lt;url&gt;</code> downloads the project.<br>
+    - <code>cd brainbytesAI</code> moves into the new folder.<br>
+    - <code>git checkout development</code> switches to the development branch.
+  </p>
 
-   ```bash
-   docker-compose build
-   ```
+  <h4>3. Configure Environment Variables</h4>
+  <p>
+    The app needs a few secret keys to run. Create your own <code>.env</code> file:
+  </p>
+  <pre><code>cp .env.example .env</code></pre>
+  <p>Then open <code>.env</code> in any text editor and fill in:</p>
+  <ul>
+    <li><code>GEMINI_API_KEY</code> — Your Google Gemini API key</li>
+    <li><code>JWT_SECRET</code> — A random string used to sign authentication tokens</li>
+  </ul>
+  <p>If you have never used an <code>.env</code> file before, it simply lists lines like <code>KEY=value</code> that your app reads at startup.</p>
 
-   The terminal should show the build process output.
+  <h4>4. Start Docker and Run Containers</h4>
+  <p>
+    Make sure <strong>Docker Desktop</strong> is installed and running (you should see the Docker whale icon in your system tray or menu bar).
+  </p>
+  <pre><code>docker-compose up -d</code></pre>
+  <p>
+    - <code>up</code> tells Docker Compose to start all services.<br>
+    - <code>-d</code> runs them in the background (“detached mode”), so you still control your terminal.
+  </p>
 
-7. Then, run:
+  <h4>5. Verify Everything Is Running</h4>
+  <p>
+    To check that each service (frontend, backend, database) is healthy, run:
+  </p>
+  <pre><code>docker-compose ps</code></pre>
+  <p>
+    Look for “Up” in the “State” column. If any container shows an error or exited, you may need to scroll its logs:
+  </p>
+  <pre><code>docker-compose logs &lt;service-name&gt;</code></pre>
 
-   ```bash
-   docker-compose up
-   ```
+  <h4>6. Access the Application</h4>
+  <p>
+    Once all containers are up, open your browser and navigate to:
+  </p>
+  <ul>
+    <li><strong>Frontend:</strong> <a href="http://localhost:8080">http://localhost:8080</a></li>
+    <li><strong>Backend API:</strong> <a href="http://localhost:3000">http://localhost:3000</a></li>
+    <li><strong>MongoDB (dev):</strong> <code>mongodb://localhost:27017/brainbytes</code></li>
+  </ul>
 
-   The application will start running.
-
-8. Open a web browser and go to:
-
-   ```
-   http://localhost:8080/
-   ```
-
-   You should see the application interface.
+  <h4>Troubleshooting Tips</h4>
+  <ul>
+    <li><strong>“command not found” for git/node/docker:</strong> Install the missing tool and reopen your terminal.</li>
+    <li><strong>Port conflicts:</strong> If <code>8080</code> or <code>3000</code> is in use, stop the other service or change the port in <code>docker-compose.yml</code>.</li>
+    <li><strong>Env vars not applied:</strong> Ensure <code>.env</code> is in the project root and that lines follow <code>KEY=value</code> syntax (no spaces).</li>
+  </ul>
 
 ---
 
