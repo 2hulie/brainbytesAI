@@ -1,0 +1,105 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      ### DEPENDENCY CACHING ###
+      - name: Cache frontend dependencies
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            frontend-${{ runner.os }}-
+
+      - name: Cache backend dependencies
+        uses: actions/cache@v3
+        with:
+          path: backend/node_modules
+          key: backend-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            backend-${{ runner.os }}-
+
+      ### INSTALL DEPENDENCIES ###
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      ### CODE QUALITY CHECKS ###
+      - name: Run ESLint (frontend)
+        working-directory: frontend
+        run: npx eslint . || true
+
+      - name: Run ESLint (backend)
+        working-directory: backend
+        run: npx eslint . || true
+
+      - name: Run Prettier Check (frontend)
+        working-directory: frontend
+        run: npx prettier --check .
+
+      - name: Run Prettier Check (backend)
+        working-directory: backend
+        run: npx prettier --check .
+
+      - name: Check for vulnerable dependencies (frontend)
+        working-directory: frontend
+        run: npm audit --audit-level=moderate || true
+
+      - name: Check for vulnerable dependencies (backend)
+        working-directory: backend
+        run: npm audit --audit-level=moderate || true
+
+      ### TESTING PLACEHOLDERS ###
+      - name: Run frontend tests (placeholder)
+        working-directory: frontend
+        run: echo "No tests yet"
+
+      - name: Run backend tests (placeholder)
+        working-directory: backend
+        run: echo "No tests yet"
+
+      ### ARTIFACTS ###
+      - name: Upload frontend build (placeholder)
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+
+      - name: Upload backend build (placeholder)
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-build
+          path: backend/build/
+
+      ### STATUS NOTIFICATION (GITHUB ISSUE) ###
+      - name: Create GitHub issue on failure
+        if: failure()
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "🚨 CI/CD Pipeline Failure on Node.js ${{ matrix.node-version }}"
+          content-filepath: .github/workflows/failure-report.md
