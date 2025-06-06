@@ -118,7 +118,7 @@ jobs:
         run: npm run cy:run || true
 
       ### PERFORMANCE TESTING PLACEHOLDER ###
-      - name: Run performance tests (placeholder)
+      - name: Run performance tests
         run: echo "No performance tests yet"
 
       ### ARTIFACTS ###
@@ -133,6 +133,10 @@ jobs:
         with:
           name: backend-build
           path: backend/build/
+
+      ### DEPLOYMENT PLACEHOLDER ###
+      - name: Deploy to test environment
+        run: echo "Deploying to test environment..."
 
       ### STATUS NOTIFICATION (GITHUB ISSUE) ###
       # - name: Create GitHub issue on failure
