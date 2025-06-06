@@ -117,6 +117,10 @@ jobs:
         working-directory: frontend
         run: npm run cy:run || true
 
+      ### PERFORMANCE TESTING PLACEHOLDER ###
+      - name: Run performance tests (placeholder)
+        run: echo "No performance tests yet"
+
       ### ARTIFACTS ###
       - name: Upload frontend build (placeholder)
         uses: actions/upload-artifact@v4
