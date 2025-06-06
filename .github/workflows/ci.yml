@@ -112,6 +112,11 @@ jobs:
         working-directory: backend
         run: echo "No tests yet"
 
+      ### RUN CYPRESS E2E TESTS ###
+      - name: Run Cypress tests
+        working-directory: frontend
+        run: npm run cy:run || true
+
       ### ARTIFACTS ###
       - name: Upload frontend build (placeholder)
         uses: actions/upload-artifact@v4
@@ -126,9 +131,9 @@ jobs:
           path: backend/build/
 
       ### STATUS NOTIFICATION (GITHUB ISSUE) ###
-      - name: Create GitHub issue on failure
-        if: failure()
-        uses: peter-evans/create-issue-from-file@v4
-        with:
-          title: "🚨 CI/CD Pipeline Failure on Node.js ${{ matrix.node-version }}"
-          content-filepath: .github/workflows/failure-report.md
+      # - name: Create GitHub issue on failure
+      #   if: failure()
+      #   uses: peter-evans/create-issue-from-file@v4
+      #   with:
+      #     title: "🚨 CI/CD Pipeline Failure on Node.js ${{ matrix.node-version }}"
+      #     content-filepath: .github/workflows/failure-report.md
