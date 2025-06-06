@@ -1,4 +1,5 @@
 ![BrainBytes AI](docs/bb_logo.png)
+
 # BrainBytes AI Tutoring Platform
 
 ## Overview
@@ -10,7 +11,7 @@ BrainBytes is an AI-powered tutoring platform designed to provide accessible aca
 - **Frontend**: Next.js
 - **Backend**: Node.js
 - **Database**: MongoDB (Docker Container)
-- **AI Model Integration**: Google Gemini API 
+- **AI Model Integration**: Google Gemini API
 - **Containerization**: Docker, Docker Compose
 - **CI/CD**: GitHub Actions
 
@@ -34,6 +35,7 @@ This diagram shows:
 - Data flow and service interactions across the stack
 
 ## Instructions for Running the Application
+
 <h3>Method 1: ZIP Download &amp; Docker Compose</h3>
   
   <ol>
@@ -203,6 +205,7 @@ git checkout development
 ### Messages API
 
 - **Endpoint**: /api/messages
+
   - **Method**: GET
   - **Description**: Get all chat messages
   - **Request Body**: None
@@ -218,8 +221,18 @@ git checkout development
 
 ```json
 {
-  "userMessage": { "_id": "123", "text": "What is science?", "isUser ": true, "createdAt": "2023-01-01T00:00:00Z" },
-  "aiMessage": { "_id": "456", "text": "Science is...", "isUser ": false, "createdAt": "2023-01-01T00:00:05Z" },
+  "userMessage": {
+    "_id": "123",
+    "text": "What is science?",
+    "isUser ": true,
+    "createdAt": "2023-01-01T00:00:00Z"
+  },
+  "aiMessage": {
+    "_id": "456",
+    "text": "Science is...",
+    "isUser ": false,
+    "createdAt": "2023-01-01T00:00:05Z"
+  },
   "category": "science",
   "questionType": "definition",
   "sentiment": "neutral"
@@ -333,24 +346,28 @@ git checkout development
 ### Learning Materials API
 
 - **Endpoint**: /api/materials
+
   - **Method**: GET
   - **Description**: Get all learning materials
   - **Request Body**: None
   - **Response**: Array of material objects
 
 - **Endpoint**: /api/materials
+
   - **Method**: POST
   - **Description**: Create a new material
   - **Request Body**: Material data
   - **Response**: Created material object
 
 - **Endpoint**: /api/materials/:id
+
   - **Method**: GET
   - **Description**: Get a specific material
   - **Request Body**: None
   - **Response**: Material object
 
 - **Endpoint**: /api/materials/:id
+
   - **Method**: PUT
   - **Description**: Update a learning material
   - **Request Body**: Updated material data

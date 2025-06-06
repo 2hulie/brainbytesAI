@@ -55,8 +55,18 @@
 
 ```json
 {
-  "userMessage": { "_id": "123", "text": "What is science?", "isUser": true, "createdAt": "2023-01-01T00:00:00Z" },
-  "aiMessage": { "_id": "456", "text": "Science is...", "isUser": false, "createdAt": "2023-01-01T00:00:05Z" },
+  "userMessage": {
+    "_id": "123",
+    "text": "What is science?",
+    "isUser": true,
+    "createdAt": "2023-01-01T00:00:00Z"
+  },
+  "aiMessage": {
+    "_id": "456",
+    "text": "Science is...",
+    "isUser": false,
+    "createdAt": "2023-01-01T00:00:05Z"
+  },
   "category": "science",
   "questionType": "definition",
   "sentiment": "neutral"
@@ -159,30 +169,30 @@ We utilized MongoDB with the following collections:
 
 ### Subject Categorization
 
-* Automatically classifies questions into subjects: math, science, history, literature, geography, and language
-* Uses keyword matching and pattern recognition
-* Improves response accuracy by providing subject-specific context
+- Automatically classifies questions into subjects: math, science, history, literature, geography, and language
+- Uses keyword matching and pattern recognition
+- Improves response accuracy by providing subject-specific context
 
 ### Question Type Detection
 
-* Identifies question types: definitions, explanations, examples, and calculations
-* Formats responses appropriately based on question type
-* Customizes API prompts for better answers
+- Identifies question types: definitions, explanations, examples, and calculations
+- Formats responses appropriately based on question type
+- Customizes API prompts for better answers
 
 ### Sentiment Analysis
 
-* Detects user frustration or confusion through keyword analysis
-* Provides empathetic responses when negative sentiment is detected
-* Adapts tone to improve user experience
+- Detects user frustration or confusion through keyword analysis
+- Provides empathetic responses when negative sentiment is detected
+- Adapts tone to improve user experience
 
 ### Fallback Mechanism
 
-* Provides detailed responses when the API fails
-* Includes subject-specific answers for common questions
-* Handles basic math calculations locally when possible
+- Provides detailed responses when the API fails
+- Includes subject-specific answers for common questions
+- Handles basic math calculations locally when possible
 
 ### Enhanced API Integration
 
-* Uses Hugging Face's models with optimized prompts
-* Implements timeout handling and error recovery
-* Provides graceful degradation when API is unavailable
+- Uses Hugging Face's models with optimized prompts
+- Implements timeout handling and error recovery
+- Provides graceful degradation when API is unavailable

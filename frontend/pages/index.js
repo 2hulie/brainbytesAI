@@ -32,7 +32,7 @@ export default function Home() {
     "language",
   ];
 
-  // Fetch user profile 
+  // Fetch user profile
   useEffect(() => {
     const syncUser = () => {
       const token = localStorage.getItem("token");
@@ -40,11 +40,12 @@ export default function Home() {
         router.replace("/login");
       }
       if (token) {
-        axios.get("http://localhost:3000/api/auth/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(res => setUser(res.data))
-        .catch(() => setUser(null));
+        axios
+          .get("http://localhost:3000/api/auth/profile", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((res) => setUser(res.data))
+          .catch(() => setUser(null));
       } else {
         setUser(null);
       }
@@ -66,7 +67,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:3000/api/messages", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setMessages(response.data);
       setLoading(false);
@@ -75,7 +76,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
 
   // Submit a new message
   const handleSubmit = async (e) => {
@@ -101,7 +101,7 @@ export default function Home() {
       const response = await axios.post(
         "http://localhost:3000/api/messages",
         { text: userMsg },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // Store response metadata
@@ -118,7 +118,7 @@ export default function Home() {
       setMessages((prev) => {
         // Filter out the temporary message
         const filteredMessages = prev.filter(
-          (msg) => msg._id !== tempUserMsg._id
+          (msg) => msg._id !== tempUserMsg._id,
         );
         // Add the real messages from the API
         return [
@@ -198,20 +198,23 @@ export default function Home() {
     };
   }, []);
 
-    // Scroll to the question if present in chat history (from dashboard)
-    useEffect(() => {
+  // Scroll to the question if present in chat history (from dashboard)
+  useEffect(() => {
     if (router.query.question && filteredMessages.length > 0) {
       // Find the first user message that matches the question text in the filtered list
       const found = filteredMessages.find(
-        (msg) => msg.text === router.query.question && msg.isUser
+        (msg) => msg.text === router.query.question && msg.isUser,
       );
       if (found && messageRefs.current[found._id]) {
-        messageRefs.current[found._id].scrollIntoView({ behavior: "smooth", block: "center" });
+        messageRefs.current[found._id].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
       }
     }
   }, [router.query.question, filteredMessages]);
 
-  // Add this function before your return statement
+  // function before return statement
   const resetNotification = () => {
     setShowNotification(true);
   };
@@ -302,7 +305,7 @@ export default function Home() {
                 {filteredMessages.map((message) => (
                   <li
                     key={message._id}
-                    ref={el => {
+                    ref={(el) => {
                       if (el) messageRefs.current[message._id] = el;
                     }}
                     style={{
@@ -383,7 +386,7 @@ export default function Home() {
               border: "1px solid #ffeeba",
               color: "#856404",
               padding: "10px 15px",
-              paddingRight: "40px", // Added padding to make room for the × button
+              paddingRight: "40px", // padding to make room for the × button
               borderRadius: "8px",
               fontSize: "14px",
               marginBottom: "15px",
@@ -413,9 +416,9 @@ export default function Home() {
                 cursor: "pointer",
                 padding: "0 8px",
                 position: "absolute",
-                top: "8px", // Adjusted to center vertically in the top area
-                right: "12px", // Moved slightly more to the right edge
-                fontWeight: "bold", // Made more visible
+                top: "8px",
+                right: "12px",
+                fontWeight: "bold",
                 lineHeight: "1", // Better centering
                 width: "24px",
                 height: "24px",
@@ -434,7 +437,7 @@ export default function Home() {
                 setSelectedSubject(
                   lastResponse.category === "general"
                     ? "all"
-                    : lastResponse.category
+                    : lastResponse.category,
                 );
                 setShowNotification(false); // Also close notification when clicking View in
               }}
@@ -444,7 +447,7 @@ export default function Home() {
                 border: "none",
                 borderRadius: "4px",
                 padding: "6px 12px",
-                marginLeft: "15px", // Increased to accommodate close button
+                marginLeft: "15px",
                 cursor: "pointer",
               }}
             >

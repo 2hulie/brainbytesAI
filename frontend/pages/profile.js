@@ -26,7 +26,7 @@ export default function Profile() {
 
   // Get token from localStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("token"); 
+    const storedToken = localStorage.getItem("token");
     if (!storedToken) {
       router.push("/login"); // redirect if no token
       return;
@@ -35,13 +35,19 @@ export default function Profile() {
 
     const fetchProfile = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/auth/profile", {
-          headers: { Authorization: `Bearer ${storedToken}` },
-        });
+        const response = await axios.get(
+          "http://localhost:3000/api/auth/profile",
+          {
+            headers: { Authorization: `Bearer ${storedToken}` },
+          },
+        );
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching profile:", error);
-        setMessage({ text: "Failed to load profile data. Please login again.", type: "error" });
+        setMessage({
+          text: "Failed to load profile data. Please login again.",
+          type: "error",
+        });
         localStorage.removeItem("token");
         router.push("/login");
       } finally {
@@ -76,7 +82,7 @@ export default function Profile() {
         user,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setUser(response.data);
       setMessage({ text: "Profile updated successfully!", type: "success" });
@@ -186,9 +192,7 @@ export default function Profile() {
                 backgroundColor: "#f0f0f0",
               }}
             />
-            <small style={{ color: "#777" }}>
-              Email cannot be changed.
-            </small>
+            <small style={{ color: "#777" }}>Email cannot be changed.</small>
           </div>
 
           <div style={{ marginBottom: "20px" }}>
@@ -288,7 +292,9 @@ export default function Profile() {
               fontFamily: "Nunito, sans-serif",
             }}
           >
-            <h2 style={{ color: "#333", marginTop: 1, marginBottom: 16 }}>Sign Out</h2>
+            <h2 style={{ color: "#333", marginTop: 1, marginBottom: 16 }}>
+              Sign Out
+            </h2>
             <p style={{ color: "#555", marginBottom: 24 }}>
               Are you sure you want to sign out?
             </p>

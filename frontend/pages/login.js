@@ -16,19 +16,22 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-        const { data } = await axios.post("http://localhost:3000/api/auth/login", { email, password });
-        // Save token and user to localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        window.location.href = "/";
-        // remove old userId key if present
-        localStorage.removeItem("brainbytesUserId");
+      const { data } = await axios.post(
+        "http://localhost:3000/api/auth/login",
+        { email, password },
+      );
+      // Save token and user to localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      window.location.href = "/";
+      // remove old userId key if present
+      localStorage.removeItem("brainbytesUserId");
     } catch (err) {
-        setError(err.response?.data?.error || "Login failed");
+      setError(err.response?.data?.error || "Login failed");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   return (
     <div
@@ -55,7 +58,7 @@ export default function Login() {
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <Link href={router.pathname === '/login' ? '/login' : '/'}>
+          <Link href={router.pathname === "/login" ? "/login" : "/"}>
             <a
               style={{
                 fontSize: "24px",
@@ -69,7 +72,9 @@ export default function Login() {
           </Link>
         </div>
 
-        <h1 style={{ color: "#333", marginBottom: "1rem", textAlign: "center" }}>
+        <h1
+          style={{ color: "#333", marginBottom: "1rem", textAlign: "center" }}
+        >
           Sign In
         </h1>
 
@@ -165,7 +170,7 @@ export default function Login() {
             {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
-       {/*<div style={{ textAlign: "left", marginTop: "0.6rem", fontSize: "14px" }}>
+        {/*<div style={{ textAlign: "left", marginTop: "0.6rem", fontSize: "14px" }}>
         <Link href="/forgot-password">
             <a style={{ color: "#2196f3", textDecoration: "none" }}>
             Forgot password?
@@ -173,8 +178,10 @@ export default function Login() {
         </Link>
         </div> */}
 
-        <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "14px" }}>
-          New to BrainBytes AI?{' '}
+        <div
+          style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "14px" }}
+        >
+          New to BrainBytes AI?{" "}
           <Link href="/register">
             <a style={{ color: "#2196f3", textDecoration: "none" }}>
               Create an account

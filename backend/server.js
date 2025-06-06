@@ -82,7 +82,7 @@ const learningMaterialSchema = new mongoose.Schema({
 
 const LearningMaterial = mongoose.model(
   "LearningMaterial",
-  learningMaterialSchema
+  learningMaterialSchema,
 );
 
 const authMiddleware = (req, res, next) => {
@@ -133,7 +133,9 @@ app.post("/api/auth/register", async (req, res) => {
     await newUser.save();
 
     // Generate JWT token
-    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.status(201).json({
       message: "User registered successfully",
@@ -165,7 +167,9 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       message: "Login successful",
@@ -189,7 +193,9 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     const user = await UserProfile.findOne({ email });
     if (!user) {
       // Always respond with success to prevent email enumeration
-      return res.json({ message: "If this email is registered, a reset link has been sent." });
+      return res.json({
+        message: "If this email is registered, a reset link has been sent.",
+      });
     }
 
     // Generate token
@@ -201,7 +207,10 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     // In production, send an email here.
     // For dev, return the reset link in the response:
     const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-    res.json({ message: "If this email is registered, a reset link has been sent.", resetLink });
+    res.json({
+      message: "If this email is registered, a reset link has been sent.",
+      resetLink,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -232,7 +241,9 @@ app.post("/api/auth/reset-password", async (req, res) => {
 // Get current user's profile (protected)
 app.get("/api/auth/profile", authMiddleware, async (req, res) => {
   try {
-    const user = await UserProfile.findById(req.user.userId).select("-password");
+    const user = await UserProfile.findById(req.user.userId).select(
+      "-password",
+    );
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -254,7 +265,7 @@ app.put("/api/auth/profile", authMiddleware, async (req, res) => {
         preferredSubjects,
         updatedAt: Date.now(),
       },
-      { new: true }
+      { new: true },
     ).select("-password");
 
     if (!updatedUser) {
@@ -270,7 +281,9 @@ app.put("/api/auth/profile", authMiddleware, async (req, res) => {
 // Get all messages
 app.get("/api/messages", authMiddleware, async (req, res) => {
   try {
-    const messages = await Message.find({ userId: req.user.userId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ userId: req.user.userId }).sort({
+      createdAt: 1,
+    });
     res.json(messages);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -290,7 +303,7 @@ app.post("/api/messages", authMiddleware, async (req, res) => {
 
     // 2. Generate AI response
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Request timeout")), 30000)
+      setTimeout(() => reject(new Error("Request timeout")), 30000),
     );
     const aiResultPromise = generateResponse(req.body.text);
     const aiResult = await Promise.race([
@@ -401,7 +414,7 @@ app.put("/api/materials/:id", async (req, res) => {
         content,
         updatedAt: Date.now(),
       },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedMaterial) {
@@ -418,7 +431,7 @@ app.put("/api/materials/:id", async (req, res) => {
 app.delete("/api/materials/:id", async (req, res) => {
   try {
     const deletedMaterial = await LearningMaterial.findByIdAndDelete(
-      req.params.id
+      req.params.id,
     );
 
     if (!deletedMaterial) {

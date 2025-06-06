@@ -30,20 +30,20 @@ export default function Dashboard() {
         // Fetch user profile using token
         const userResponse = await axios.get(
           "http://localhost:3000/api/auth/profile",
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         setUser(userResponse.data);
 
         // Fetch messages
         const messagesResponse = await axios.get(
           "http://localhost:3000/api/messages",
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         setMessages(messagesResponse.data);
 
         // Fetch learning materials
         const materialsResponse = await axios.get(
-          "http://localhost:3000/api/materials"
+          "http://localhost:3000/api/materials",
         );
         setMaterials(materialsResponse.data);
 
@@ -316,9 +316,13 @@ export default function Dashboard() {
                         margin: "5px 0",
                         backgroundColor: "#e3f2fd",
                         borderRadius: "8px",
-                        cursor: "pointer"
+                        cursor: "pointer",
                       }}
-                      onClick={() => router.push(`/?question=${encodeURIComponent(message.text)}`)} // <-- Add this line
+                      onClick={() =>
+                        router.push(
+                          `/?question=${encodeURIComponent(message.text)}`,
+                        )
+                      } // <-- Add this line
                     >
                       <div>{message.text}</div>
                       <div
@@ -360,13 +364,15 @@ export default function Dashboard() {
                       margin: "5px 0",
                       backgroundColor: "#e8f5e9",
                       borderRadius: "8px",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                     onClick={() => setSelectedMaterial(material)}
                   >
                     <div style={{ fontWeight: "bold" }}>{material.topic}</div>
                     <div style={{ fontSize: "14px", marginTop: "5px" }}>
-                      Subject: {material.subject.charAt(0).toUpperCase() + material.subject.slice(1)}
+                      Subject:{" "}
+                      {material.subject.charAt(0).toUpperCase() +
+                        material.subject.slice(1)}
                     </div>
                   </div>
                 ))}
@@ -408,7 +414,7 @@ export default function Dashboard() {
               fontFamily: "Nunito, sans-serif",
               position: "relative",
             }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setSelectedMaterial(null)}
@@ -426,11 +432,17 @@ export default function Dashboard() {
             >
               ×
             </button>
-            <h2 style={{ color: "#2196f3", marginTop: 1}}>{selectedMaterial.topic}</h2>
+            <h2 style={{ color: "#2196f3", marginTop: 1 }}>
+              {selectedMaterial.topic}
+            </h2>
             <div style={{ color: "#555", marginBottom: 8 }}>
-              Subject: {selectedMaterial.subject.charAt(0).toUpperCase() + selectedMaterial.subject.slice(1)}
+              Subject:{" "}
+              {selectedMaterial.subject.charAt(0).toUpperCase() +
+                selectedMaterial.subject.slice(1)}
             </div>
-            <div style={{ marginTop: 16, color: "#222", whiteSpace: "pre-line" }}>
+            <div
+              style={{ marginTop: 16, color: "#222", whiteSpace: "pre-line" }}
+            >
               {selectedMaterial.content}
             </div>
           </div>

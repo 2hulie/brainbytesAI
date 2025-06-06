@@ -12,8 +12,12 @@ export default function ForgotPassword() {
     setMessage("");
     setError("");
     try {
-      await axios.post("http://localhost:3000/api/auth/forgot-password", { email });
-      setMessage("If this email is registered, a password reset link has been sent.");
+      await axios.post("http://localhost:3000/api/auth/forgot-password", {
+        email,
+      });
+      setMessage(
+        "If this email is registered, a password reset link has been sent.",
+      );
     } catch (err) {
       setError("Something went wrong. Please try again.");
     }
@@ -30,15 +34,25 @@ export default function ForgotPassword() {
         fontFamily: "Nunito, sans-serif",
       }}
     >
-      <h2 style={{ fontFamily: "Nunito, sans-serif", color: "#333" }}>Forgot Password</h2>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <h2 style={{ fontFamily: "Nunito, sans-serif", color: "#333" }}>
+        Forgot Password
+      </h2>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+      >
         <input
           type="email"
           placeholder="Your email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ padding: 12, borderRadius: 8, border: "1px solid #ddd", fontFamily: "Nunito, sans-serif" }}
+          style={{
+            padding: 12,
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            fontFamily: "Nunito, sans-serif",
+          }}
         />
         <button
           type="submit"
@@ -55,11 +69,39 @@ export default function ForgotPassword() {
           Send Reset Link
         </button>
       </form>
-      {message && <div style={{ color: "green", marginTop: 16, fontFamily: "Nunito, sans-serif" }}>{message}</div>}
-      {error && <div style={{ color: "red", marginTop: 16, fontFamily: "Nunito, sans-serif" }}>{error}</div>}
+      {message && (
+        <div
+          style={{
+            color: "green",
+            marginTop: 16,
+            fontFamily: "Nunito, sans-serif",
+          }}
+        >
+          {message}
+        </div>
+      )}
+      {error && (
+        <div
+          style={{
+            color: "red",
+            marginTop: 16,
+            fontFamily: "Nunito, sans-serif",
+          }}
+        >
+          {error}
+        </div>
+      )}
       <div style={{ marginTop: 24 }}>
         <Link href="/login">
-          <a style={{ fontFamily: "Nunito, sans-serif", color: "#2196f3", textDecoration: "none" }}>Back to login</a>
+          <a
+            style={{
+              fontFamily: "Nunito, sans-serif",
+              color: "#2196f3",
+              textDecoration: "none",
+            }}
+          >
+            Back to login
+          </a>
         </Link>
       </div>
     </div>

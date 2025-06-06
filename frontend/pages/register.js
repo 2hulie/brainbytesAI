@@ -18,23 +18,26 @@ export default function Register() {
     setError("");
 
     if (password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
+      setError("Passwords do not match");
+      return;
     }
 
     setLoading(true);
     try {
-        const { data } = await axios.post("http://localhost:3000/api/auth/register", { name, email, password });
-        // Save token and user to localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        router.push("/");
+      const { data } = await axios.post(
+        "http://localhost:3000/api/auth/register",
+        { name, email, password },
+      );
+      // Save token and user to localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/");
     } catch (err) {
-        setError(err.response?.data?.error || "Registration failed");
+      setError(err.response?.data?.error || "Registration failed");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
+  };
 
   return (
     <div style={styles.container}>
@@ -73,7 +76,7 @@ export default function Register() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="•••••••••"
+              placeholder="Password"
               required
               style={{
                 padding: "12px",
@@ -118,7 +121,14 @@ export default function Register() {
             style={styles.input}
             disabled={loading}
           />
-          <button type="submit" style={{ ...styles.button, backgroundColor: loading ? "#90caf9" : "#2196f3" }} disabled={loading}>
+          <button
+            type="submit"
+            style={{
+              ...styles.button,
+              backgroundColor: loading ? "#90caf9" : "#2196f3",
+            }}
+            disabled={loading}
+          >
             {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
