@@ -21,15 +21,17 @@ jobs:
         node-version: [16.x, 18.x]
 
     steps:
+      ### 1️⃣ CHECKOUT REPOSITORY ###
       - name: Checkout code
         uses: actions/checkout@v3
 
+      ### 2️⃣ SETUP NODE.JS ###
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
-      ### DEPENDENCY CACHING ###
+      ### 3️⃣ CACHE DEPENDENCIES ###
       - name: Cache frontend dependencies
         uses: actions/cache@v3
         with:
@@ -37,7 +39,6 @@ jobs:
           key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             frontend-${{ runner.os }}-
-
       - name: Cache backend dependencies
         uses: actions/cache@v3
         with:
@@ -46,20 +47,19 @@ jobs:
           restore-keys: |
             backend-${{ runner.os }}-
 
-      ### INSTALL DEPENDENCIES ###
+      ### 4️⃣ INSTALL DEPENDENCIES ###
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
-
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
 
-      ### SETUP DOCKER BUILDX ###
+      ### 5️⃣ SETUP DOCKER BUILDX ###
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      ### DOCKER BUILDS WITH LAYER CACHING ###
+      ### 6️⃣ DOCKER BUILDS WITH LAYER CACHING ###
       - name: Build and cache frontend Docker image
         uses: docker/build-push-action@v5
         with:
@@ -68,7 +68,6 @@ jobs:
           tags: frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
       - name: Build and cache backend Docker image
         uses: docker/build-push-action@v5
         with:
@@ -78,67 +77,86 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      ### CODE QUALITY CHECKS ###
+      ### 7️⃣ CODE QUALITY CHECKS ###
       - name: Run ESLint (frontend)
         working-directory: frontend
         run: npx eslint . || true
-
       - name: Run ESLint (backend)
         working-directory: backend
         run: npx eslint . || true
-
       - name: Run Prettier Check (frontend)
         working-directory: frontend
         run: npx prettier --check . --ignore-path ../../.prettierignore
-
       - name: Run Prettier Check (backend)
         working-directory: backend
         run: npx prettier --check . --ignore-path ../../.prettierignore
-
       - name: Check for vulnerable dependencies (frontend)
         working-directory: frontend
         run: npm audit --audit-level=moderate || true
-
       - name: Check for vulnerable dependencies (backend)
         working-directory: backend
         run: npm audit --audit-level=moderate || true
 
-      ### TESTING PLACEHOLDERS ###
-      - name: Run frontend tests (placeholder)
-        working-directory: frontend
-        run: echo "No tests yet"
-
-      - name: Run backend tests (placeholder)
+      ### 8️⃣ UNIT TESTING ###
+      - name: Run backend unit tests with coverage
         working-directory: backend
-        run: echo "No tests yet"
+        run: npm test -- --coverage
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
 
-      ### RUN CYPRESS E2E TESTS ###
+      ### 9️⃣ FRONTEND TESTING ###
+      - name: Run frontend unit tests with coverage
+        working-directory: frontend
+        run: npm test -- --coverage
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+      ### 🔟 E2E TESTING WITH CYPRESS ###
+      - name: Run frontend app in background
+        working-directory: frontend
+        run: npm run dev &
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:3000
       - name: Run Cypress tests
         working-directory: frontend
-        run: npm run cy:run || true
+        run: npm run cy:run
 
-      ### PERFORMANCE TESTING PLACEHOLDER ###
+      ### 1️⃣1️⃣ TEST SUMMARY REPORT PLACEHOLDER ###
+      - name: Generate test summary report
+        run: echo "Generating test summary report (to be implemented)"
+
+      ### 1️⃣2️⃣ CHECK FOR LARGE FILES ###
+      - name: Check for large files
+        run: git ls-files | xargs -I{} du -sh {} | sort -rh | head -n 10
+
+      ### 1️⃣3️⃣ PERFORMANCE TESTING PLACEHOLDER ###
       - name: Run performance tests
-        run: echo "No performance tests yet"
+        run: echo "No performance tests implemented yet"
 
-      ### ARTIFACTS ###
-      - name: Upload frontend build (placeholder)
+      ### 1️⃣4️⃣ ARTIFACTS ###
+      - name: Upload frontend build artifact (placeholder)
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/build/
-
-      - name: Upload backend build (placeholder)
+      - name: Upload backend build artifact (placeholder)
         uses: actions/upload-artifact@v4
         with:
           name: backend-build
           path: backend/build/
 
-      ### DEPLOYMENT PLACEHOLDER ###
+      ### 1️⃣5️⃣ DEPLOYMENT PLACEHOLDER ###
       - name: Deploy to test environment
-        run: echo "Deploying to test environment..."
+        run: echo "Deploying to test environment (to be implemented)"
 
-      ### STATUS NOTIFICATION (GITHUB ISSUE) ###
+      ### 1️⃣6️⃣ STATUS NOTIFICATION ###
+      # Commented out — enable when ready to notify on failures
       # - name: Create GitHub issue on failure
       #   if: failure()
       #   uses: peter-evans/create-issue-from-file@v4
