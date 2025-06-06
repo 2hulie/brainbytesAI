@@ -49,6 +49,25 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      ### DOCKER BUILDS WITH LAYER CACHING ###
+      - name: Build and cache frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and cache backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       ### CODE QUALITY CHECKS ###
       - name: Run ESLint (frontend)
         working-directory: frontend
