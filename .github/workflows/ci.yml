@@ -10,6 +10,11 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      
     strategy:
       matrix:
         node-version: [16.x, 18.x]
