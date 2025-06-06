@@ -33,13 +33,6 @@ You can run the CI/CD pipeline manually:
 
 ---
 
-## Workflow Status Badges
-
-- **Main CI/CD**:  
-  ![CI/CD Status](https://github.com/Sempuri/brainbytesAI/actions/workflows/ci.yml/badge.svg)
-
----
-
 ## Troubleshooting
 
 ### Common Issues
