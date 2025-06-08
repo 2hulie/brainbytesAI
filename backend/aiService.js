@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const { GoogleGenAI } = require("@google/genai");
 
 // Initialize our AI client using Gemini
@@ -358,7 +357,7 @@ function detectCategory(question) {
 
   // Check for math symbols and expressions with better context
   if (
-    (/[+\-*\/=><]/.test(lower) && /\d+/.test(lower)) ||
+    (/[+\-*/=><]/.test(lower) && /\d+/.test(lower)) ||
     /calculate|solve|equation|formula|compute/.test(lower)
   ) {
     scores.math += 5;

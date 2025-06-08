@@ -1,4 +1,4 @@
-const { generateResponse } = require("./aiService");
+const { generateResponse } = require("../aiService");
 
 // Mock the GoogleGenAI class
 jest.mock("@google/genai", () => {

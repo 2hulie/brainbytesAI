@@ -3,5 +3,7 @@ module.exports = {
     "default",
     ["jest-junit", { outputDirectory: "./reports", outputName: "junit.xml" }]
   ],
-  collectCoverage: true
+  collectCoverage: true,
+  testEnvironment: "node",
+  testPathIgnorePatterns: ["/node_modules/"],
 };

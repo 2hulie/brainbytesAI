@@ -2,7 +2,7 @@ const {
   detectCategory,
   detectQuestionType,
   detectSentiment,
-} = require("./aiService");
+} = require("../aiService");
 
 describe("detectCategory function", () => {
   test("detects math category from symbols", () => {

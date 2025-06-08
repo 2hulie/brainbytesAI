@@ -1,3 +1,4 @@
+/* global setTimeout */
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -45,17 +46,6 @@ const messageSchema = new mongoose.Schema({
 });
 
 const Message = mongoose.model("Message", messageSchema);
-
-const messagePairSchema = new mongoose.Schema({
-  userMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
-  aiMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
-  category: String,
-  questionType: String,
-  sentiment: String,
-  createdAt: { type: Date, default: Date.now },
-});
-
-const MessagePair = mongoose.model("MessagePair", messagePairSchema);
 
 // User Profile Schema
 const userProfileSchema = new mongoose.Schema({
@@ -444,7 +434,11 @@ app.delete("/api/materials/:id", async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start the server (only if not in test)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app; // Export app for Supertest

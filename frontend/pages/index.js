@@ -400,8 +400,7 @@ export default function Home() {
               <p style={{ margin: "0" }}>
                 <strong>New message in a different subject!</strong> Your latest
                 AI response was categorized as{" "}
-                <strong>{lastResponse.category}</strong> and won't appear in the
-                current filter.
+                <strong>{lastResponse.category}</strong> and won&apos;t appear in the current filter.
               </p>
             </div>
 

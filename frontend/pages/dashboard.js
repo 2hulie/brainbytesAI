@@ -50,7 +50,9 @@ export default function Dashboard() {
         // Process user message stats (from the messages array)
         analyzeMessages(messagesResponse.data);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching dashboard data:", error);
+        }
       } finally {
         setLoading(false);
       }
@@ -86,7 +88,7 @@ export default function Dashboard() {
       }
 
       // Count by sentiment
-      if (response.sentiment && sentiment.hasOwnProperty(response.sentiment)) {
+      if (response.sentiment && Object.prototype.hasOwnProperty.call(sentiment, response.sentiment)) {
         sentiment[response.sentiment] += 1;
       }
     });
@@ -129,7 +131,7 @@ export default function Dashboard() {
         fontFamily: "Nunito, sans-serif",
       }}
     >
-      <Navigation user={user} />
+      <Navigation />
 
       <h1 style={{ color: "#333", marginBottom: "20px" }}>
         Learning Dashboard
@@ -151,7 +153,7 @@ export default function Dashboard() {
             }}
           >
             <h2>Welcome, {user ? user.name : "Guest"}!</h2>
-            {user ? (
+            {user?.preferredSubjects?.length > 0 ? (
               <p>
                 Your preferred subjects:{" "}
                 {user.preferredSubjects.length > 0
