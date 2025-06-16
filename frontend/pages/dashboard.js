@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Navigation from "../components/Navigation";
+import api from "../utils/api";
+import { setAuthToken } from "../utils/api";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -28,29 +29,27 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         // Fetch user profile using token
-        const userResponse = await axios.get(
-          "http://localhost:3000/api/auth/profile",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const userResponse = await api.get("/api/auth/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setUser(userResponse.data);
 
         // Fetch messages
-        const messagesResponse = await axios.get(
-          "http://localhost:3000/api/messages",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const messagesResponse = await api.get("/api/messages", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setMessages(messagesResponse.data);
 
         // Fetch learning materials
-        const materialsResponse = await axios.get(
-          "http://localhost:3000/api/materials"
-        );
+        const materialsResponse = await api.get("/api/materials");
         setMaterials(materialsResponse.data);
 
         // Process user message stats (from the messages array)
         analyzeMessages(messagesResponse.data);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching dashboard data:", error);
+        }
       } finally {
         setLoading(false);
       }
@@ -86,7 +85,10 @@ export default function Dashboard() {
       }
 
       // Count by sentiment
-      if (response.sentiment && sentiment.hasOwnProperty(response.sentiment)) {
+      if (
+        response.sentiment &&
+        Object.prototype.hasOwnProperty.call(sentiment, response.sentiment)
+      ) {
         sentiment[response.sentiment] += 1;
       }
     });
@@ -129,7 +131,7 @@ export default function Dashboard() {
         fontFamily: "Nunito, sans-serif",
       }}
     >
-      <Navigation user={user} />
+      <Navigation />
 
       <h1 style={{ color: "#333", marginBottom: "20px" }}>
         Learning Dashboard
@@ -151,7 +153,7 @@ export default function Dashboard() {
             }}
           >
             <h2>Welcome, {user ? user.name : "Guest"}!</h2>
-            {user ? (
+            {user?.preferredSubjects?.length > 0 ? (
               <p>
                 Your preferred subjects:{" "}
                 {user.preferredSubjects.length > 0
@@ -163,8 +165,8 @@ export default function Dashboard() {
             ) : (
               <p>
                 Please{" "}
-                <Link href="/profile">
-                  <a style={{ color: "#2196f3" }}>create a profile</a>
+                <Link href="/profile" style={{ color: "#2196f3" }}>
+                  create a profile
                 </Link>{" "}
                 to customize your learning experience.
               </p>
@@ -316,9 +318,13 @@ export default function Dashboard() {
                         margin: "5px 0",
                         backgroundColor: "#e3f2fd",
                         borderRadius: "8px",
-                        cursor: "pointer"
+                        cursor: "pointer",
                       }}
-                      onClick={() => router.push(`/?question=${encodeURIComponent(message.text)}`)} // <-- Add this line
+                      onClick={() =>
+                        router.push(
+                          `/?question=${encodeURIComponent(message.text)}`
+                        )
+                      } // <-- Add this line
                     >
                       <div>{message.text}</div>
                       <div
@@ -360,13 +366,15 @@ export default function Dashboard() {
                       margin: "5px 0",
                       backgroundColor: "#e8f5e9",
                       borderRadius: "8px",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                     onClick={() => setSelectedMaterial(material)}
                   >
                     <div style={{ fontWeight: "bold" }}>{material.topic}</div>
                     <div style={{ fontSize: "14px", marginTop: "5px" }}>
-                      Subject: {material.subject.charAt(0).toUpperCase() + material.subject.slice(1)}
+                      Subject:{" "}
+                      {material.subject.charAt(0).toUpperCase() +
+                        material.subject.slice(1)}
                     </div>
                   </div>
                 ))}
@@ -408,7 +416,7 @@ export default function Dashboard() {
               fontFamily: "Nunito, sans-serif",
               position: "relative",
             }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setSelectedMaterial(null)}
@@ -426,11 +434,17 @@ export default function Dashboard() {
             >
               ×
             </button>
-            <h2 style={{ color: "#2196f3", marginTop: 1}}>{selectedMaterial.topic}</h2>
+            <h2 style={{ color: "#2196f3", marginTop: 1 }}>
+              {selectedMaterial.topic}
+            </h2>
             <div style={{ color: "#555", marginBottom: 8 }}>
-              Subject: {selectedMaterial.subject.charAt(0).toUpperCase() + selectedMaterial.subject.slice(1)}
+              Subject:{" "}
+              {selectedMaterial.subject.charAt(0).toUpperCase() +
+                selectedMaterial.subject.slice(1)}
             </div>
-            <div style={{ marginTop: 16, color: "#222", whiteSpace: "pre-line" }}>
+            <div
+              style={{ marginTop: 16, color: "#222", whiteSpace: "pre-line" }}
+            >
               {selectedMaterial.content}
             </div>
           </div>

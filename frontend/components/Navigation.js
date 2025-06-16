@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-export default function Navigation({ user }) {
+export default function Navigation() {
   const router = useRouter();
 
   // Helper function to determine if a link is active
@@ -20,59 +20,52 @@ export default function Navigation({ user }) {
       }}
     >
       <div style={{ fontWeight: "bold", fontSize: "22px" }}>
-        <Link href="/">
-          <a style={{ textDecoration: "none", color: "#2196f3" }}>
-            BrainBytes AI
-          </a>
+        <Link href="/" style={{ textDecoration: "none", color: "#2196f3" }}>
+          BrainBytes AI
         </Link>
       </div>
 
       <div>
-        <Link href="/">
-          <a
-            style={{
-              padding: "8px 16px",
-              color: router.pathname === "/" ? "#2196f3" : "#666",
-              fontWeight: router.pathname === "/" ? "bold" : "normal",
-              textDecoration: "none",
-              marginRight: "15px",
-              borderBottom: isActive("/") ? "2px solid #2196f3" : "none",
-            }}
-          >
-            Chat
-          </a>
+        <Link
+          href="/"
+          style={{
+            padding: "8px 16px",
+            color: router.pathname === "/" ? "#2196f3" : "#666",
+            fontWeight: router.pathname === "/" ? "bold" : "normal",
+            textDecoration: "none",
+            marginRight: "15px",
+            borderBottom: isActive("/") ? "2px solid #2196f3" : "none",
+          }}
+        >
+          Chat
         </Link>
 
-        <Link href="/dashboard">
-          <a
-            style={{
-              padding: "8px 16px",
-              color: isActive("/dashboard") ? "#2196f3" : "#666",
-              fontWeight: isActive("/dashboard") ? "bold" : "normal",
-              textDecoration: "none",
-              marginRight: "15px",
-              borderBottom: isActive("/dashboard")
-                ? "2px solid #2196f3"
-                : "none",
-            }}
-          >
-            Dashboard
-          </a>
+        <Link
+          href="/dashboard"
+          style={{
+            padding: "8px 16px",
+            color: isActive("/dashboard") ? "#2196f3" : "#666",
+            fontWeight: isActive("/dashboard") ? "bold" : "normal",
+            textDecoration: "none",
+            marginRight: "15px",
+            borderBottom: isActive("/dashboard") ? "2px solid #2196f3" : "none",
+          }}
+        >
+          Dashboard
         </Link>
 
-        <Link href="/profile">
-          <a
-            style={{
-              padding: "8px 16px",
-              backgroundColor: isActive("/profile") ? "#1976d2" : "#2196f3",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "8px",
-              transition: "background-color 0.2s",
-            }}
-          >
-            Profile
-          </a>
+        <Link
+          href="/profile"
+          style={{
+            padding: "8px 16px",
+            backgroundColor: isActive("/profile") ? "#1976d2" : "#2196f3",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "8px",
+            transition: "background-color 0.2s",
+          }}
+        >
+          Profile
         </Link>
       </div>
     </nav>

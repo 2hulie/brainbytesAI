@@ -1,5 +1,4 @@
-const fetch = require("node-fetch");
-const { GoogleGenAI } = require("@google/genai");
+import { GoogleGenAI } from "@google/genai";
 
 // Initialize our AI client using Gemini
 const aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -358,7 +357,7 @@ function detectCategory(question) {
 
   // Check for math symbols and expressions with better context
   if (
-    (/[+\-*\/=><]/.test(lower) && /\d+/.test(lower)) ||
+    (/[+\-*/=><]/.test(lower) && /\d+/.test(lower)) ||
     /calculate|solve|equation|formula|compute/.test(lower)
   ) {
     scores.math += 5;
@@ -606,7 +605,7 @@ function getDefaultFallback(category) {
   }
 }
 
-module.exports = {
+export {
   generateResponse,
   detectCategory,
   detectQuestionType,

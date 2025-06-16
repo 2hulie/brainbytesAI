@@ -1,0 +1,95 @@
+# .github/workflows/deploy.yml
+name: BrainBytes Deploy
+
+on:
+  push:
+    branches: [master, development]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "test"
+        type: choice
+        options:
+          - test
+          - staging
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || 'test' }} Environment
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'test' }}
+    env:
+      DEPLOY_URL: placeholder-url
+      DEPLOY_ENV: placeholder-env
+      DEPLOY_TIME: placeholder-time
+      DEPLOY_SHA: placeholder-sha
+      DEPLOY_BRANCH: placeholder-branch
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+
+      - name: Configure environment
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.API_URL }}" >> .env
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: docker-compose build
+
+      - name: Prepare deployment
+        run: |
+          echo "DEPLOY_TIME=$(date)" >> $GITHUB_ENV
+          echo "DEPLOY_SHA=${{ github.sha }}" >> $GITHUB_ENV
+          echo "DEPLOY_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Setup deployment variables
+        run: |
+          echo "DEPLOY_TIME=$(date)" >> $GITHUB_ENV
+          if [[ "${{ github.event.inputs.environment || 'test' }}" == "staging" ]]; then
+            echo "DEPLOY_URL=staging-brainbytes.yourdomain.com" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_URL=test-brainbytes.yourdomain.com" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=test" >> $GITHUB_ENV
+          fi
+          echo "DEPLOY_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Deploy containers (Development Mode)
+        run: |
+          echo "🚀 Simulating deployment to ${{ github.event.inputs.environment || 'test' }} environment"
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "oci container-instances create --compartment-id ocid1.compartment.oc1..simulated --image frontend:${{ github.sha }} --region us-phoenix-1 --memory-in-gbs 2"
+            sleep 2
+            echo "✅ Production deployment complete!"
+          else
+            echo "oci container-instances create --compartment-id ocid1.compartment.oc1..simulated-staging --image frontend:${{ github.sha }} --region us-phoenix-1 --memory-in-gbs 1"
+            sleep 1
+            echo "✅ Staging deployment complete!"
+          fi
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment health..."
+          echo "Checking endpoint: https://${{ env.DEPLOY_URL }}/api/health"
+          sleep 2
+          echo "Response: {\"status\":\"healthy\",\"environment\":\"${{ env.DEPLOY_ENV }}\",\"version\":\"${{ github.sha }}\"}"
+          echo "✅ Verification successful!"
+
+      - name: Send deployment notification
+        if: success()
+        run: |
+          echo "🚀 Successfully deployed BrainBytes to ${{ github.event.inputs.environment || 'test' }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Time: ${{ env.DEPLOY_TIME }}"

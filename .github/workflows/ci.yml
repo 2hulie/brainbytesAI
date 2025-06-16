@@ -1,0 +1,219 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master, development]
+  pull_request:
+    branches: [master, development]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      issues: write
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    steps:
+      ### 1️⃣ CHECKOUT REPOSITORY ###
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      ### 2️⃣ SETUP NODE.JS ###
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      ### 3️⃣ CACHE DEPENDENCIES ###
+      - name: Cache frontend dependencies
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            frontend-${{ runner.os }}-
+      - name: Cache backend dependencies
+        uses: actions/cache@v3
+        with:
+          path: backend/node_modules
+          key: backend-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            backend-${{ runner.os }}-
+
+      ### 4️⃣ INSTALL DEPENDENCIES ###
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      ### 5️⃣ SETUP DOCKER BUILDX ###
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      ### 6️⃣ DOCKER BUILDS WITH LAYER CACHING ###
+      - name: Build and cache frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build and cache backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      ### 7️⃣ CODE QUALITY CHECKS ###
+      - name: Run ESLint (frontend)
+        working-directory: frontend
+        run: npx eslint . --format json --output-file eslint-frontend-report.json || true
+      - name: Run ESLint (backend)
+        working-directory: backend
+        run: npx eslint . --output-file eslint-backend-report.json || true
+      - name: Annotate ESLint results
+        uses: ataylorme/eslint-annotate-action@v2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "frontend/eslint-frontend-report.json,backend/eslint-backend-report.json"
+      - name: Run Prettier Check (frontend)
+        working-directory: frontend
+        run: npx prettier --check . --ignore-path ../../.prettierignore
+      - name: Run Prettier Check (backend)
+        working-directory: backend
+        run: npx prettier --check . --ignore-path ../../.prettierignore
+      - name: Check for vulnerable dependencies (frontend)
+        working-directory: frontend
+        run: npm audit --audit-level=moderate || true
+      - name: Check for vulnerable dependencies (backend)
+        working-directory: backend
+        run: npm audit --audit-level=moderate || true
+
+      ### 8️⃣ UNIT TESTING ###
+      - name: Run backend unit tests with coverage
+        working-directory: backend
+        run: npm test -- --coverage
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+      ### 9️⃣ FRONTEND TESTING ###
+      - name: Run frontend unit tests with coverage
+        working-directory: frontend
+        run: npm test -- --coverage
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+      ### 🔟 E2E TESTING WITH CYPRESS ###
+      - name: Run frontend app in background
+        working-directory: frontend
+        run: npm run dev &
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:3000
+      - name: Run Cypress tests
+        timeout-minutes: 5 # More granular timeout for Cypress tests
+        working-directory: frontend
+        run: npm run cy:run
+
+      ### 1️⃣1️⃣ TEST SUMMARY REPORT ###
+      - name: Upload test summary report (backend)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-junit-report
+          path: backend/reports/junit.xml
+
+      - name: Upload test summary report (frontend)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-junit-report
+          path: frontend/reports/junit.xml
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run regardless of previous step result
+        with:
+          name: Tests Report
+          path: "**/junit.xml"
+          reporter: jest-junit
+          fail-on-error: false
+
+      ### 1️⃣2️⃣ CHECK FOR LARGE FILES AND SECRETS ###
+      - name: Check for large files
+        run: git ls-files | xargs -I{} du -sh {} | sort -rh | head -n 10
+      - name: Check for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      ### 1️⃣3️⃣ PERFORMANCE TESTING ###
+      - name: Run Lighthouse performance tests
+        working-directory: frontend
+        run: npx lhci autorun || true
+
+      ### 1️⃣4️⃣ ARTIFACTS ###
+      ### Build artifacts for frontend
+      - name: Build frontend for production
+        working-directory: frontend
+        run: |
+          npm run build
+          # Create a directory for the build artifacts if it doesn't exist
+          mkdir -p build
+          # Copy the required files to the build directory
+          cp -r .next build/
+          cp -r public build/
+          cp package.json build/
+          cp next.config.js build/
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build/
+          retention-days: 7
+      ### Build artifacts for backend
+      - name: Build backend for production
+        working-directory: backend
+        run: |
+          # Create a directory for the build artifacts
+          mkdir -p build
+          # Copy required files to the build directory
+          cp -r *.js build/
+          cp package*.json build/
+          # Exclude any development/test files
+          find build -name "*.test.js" -delete
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/build/
+          retention-days: 7
+
+      ### 1️⃣5️⃣ DEPLOYMENT PLACEHOLDER ###
+      - name: Deploy to test environment
+        run: echo "Deploying to test environment (to be implemented)"
+
+      ### 1️⃣6️⃣ STATUS NOTIFICATION ###
+      # Commented out — enable when ready to notify on failures
+      # - name: Create GitHub issue on failure
+      #   if: failure()
+      #   uses: peter-evans/create-issue-from-file@v4
+      #   with:
+      #     title: "🚨 CI/CD Pipeline Failure on Node.js ${{ matrix.node-version }}"
+      #     content-filepath: .github/workflows/failure-report.md

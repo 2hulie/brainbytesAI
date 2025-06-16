@@ -1,18 +1,23 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-//const aiService = require("./aiService");
-const { generateResponse } = require("./aiService");
+// All imports must use ES Modules syntax
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { generateResponse } from "./aiService.js"; // Note the .js extension is required
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:8080", // or "*" for dev, but see below
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Initialize AI model
@@ -45,17 +50,6 @@ const messageSchema = new mongoose.Schema({
 });
 
 const Message = mongoose.model("Message", messageSchema);
-
-const messagePairSchema = new mongoose.Schema({
-  userMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
-  aiMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
-  category: String,
-  questionType: String,
-  sentiment: String,
-  createdAt: { type: Date, default: Date.now },
-});
-
-const MessagePair = mongoose.model("MessagePair", messagePairSchema);
 
 // User Profile Schema
 const userProfileSchema = new mongoose.Schema({
@@ -133,7 +127,9 @@ app.post("/api/auth/register", async (req, res) => {
     await newUser.save();
 
     // Generate JWT token
-    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.status(201).json({
       message: "User registered successfully",
@@ -165,7 +161,9 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       message: "Login successful",
@@ -189,7 +187,9 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     const user = await UserProfile.findOne({ email });
     if (!user) {
       // Always respond with success to prevent email enumeration
-      return res.json({ message: "If this email is registered, a reset link has been sent." });
+      return res.json({
+        message: "If this email is registered, a reset link has been sent.",
+      });
     }
 
     // Generate token
@@ -200,8 +200,13 @@ app.post("/api/auth/forgot-password", async (req, res) => {
 
     // In production, send an email here.
     // For dev, return the reset link in the response:
-    const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-    res.json({ message: "If this email is registered, a reset link has been sent.", resetLink });
+    const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${encodeURIComponent(
+      email
+    )}`;
+    res.json({
+      message: "If this email is registered, a reset link has been sent.",
+      resetLink,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -232,7 +237,9 @@ app.post("/api/auth/reset-password", async (req, res) => {
 // Get current user's profile (protected)
 app.get("/api/auth/profile", authMiddleware, async (req, res) => {
   try {
-    const user = await UserProfile.findById(req.user.userId).select("-password");
+    const user = await UserProfile.findById(req.user.userId).select(
+      "-password"
+    );
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -270,7 +277,9 @@ app.put("/api/auth/profile", authMiddleware, async (req, res) => {
 // Get all messages
 app.get("/api/messages", authMiddleware, async (req, res) => {
   try {
-    const messages = await Message.find({ userId: req.user.userId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ userId: req.user.userId }).sort({
+      createdAt: 1,
+    });
     res.json(messages);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -431,7 +440,20 @@ app.delete("/api/materials/:id", async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Health check route
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    time: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
 });
+
+// Start the server (only if not in test)
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app; // Export app for Supertest
