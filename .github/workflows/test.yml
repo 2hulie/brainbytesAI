@@ -115,7 +115,7 @@ jobs:
         working-directory: ./backend
         run: npm test -- --coverage
         env:
-          MONGODB_URI: mongodb://mongo:27017/brainbytes
+          MONGODB_URI: mongodb://localhost:27017/brainbytes
           JWT_SECRET: testsecret
           GEMINI_API_KEY: dummy
 
