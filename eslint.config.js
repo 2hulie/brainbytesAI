@@ -60,8 +60,12 @@ export default [
 
   // 3) Backend tests with Jest
   {
-    // Only .test.js or .test.ts in backend
-    files: ["backend/**/*.test.{js,ts}", "backend/**/*.mjs"],
+    // Only .test.js or .test.ts in backend and all backend mocks
+    files: [
+      "backend/**/*.test.{js,ts}",
+      "backend/**/*.mjs",
+      "backend/__mocks__/**/*.js",
+    ],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
