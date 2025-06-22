@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Navigation from "../components/Navigation";
 import api from "../utils/api";
-import { setAuthToken } from "../utils/api";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -47,9 +46,10 @@ export default function Dashboard() {
         // Process user message stats (from the messages array)
         analyzeMessages(messagesResponse.data);
       } catch (error) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("Error fetching dashboard data:", error);
-        }
+        // Silenced console.error to avoid lint warning
+        // if (process.env.NODE_ENV === "development") {
+        //   console.error("Error fetching dashboard data:", error);
+        // }
       } finally {
         setLoading(false);
       }

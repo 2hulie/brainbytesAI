@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // __mocks__/react-markdown.js
 import React from "react";
 

@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Navigation from "../components/Navigation";
 import ReactMarkdown from "react-markdown";
 import api from "../utils/api";
-import { setAuthToken } from "../utils/api";
 
 export default function Home() {
   const router = useRouter();
@@ -72,7 +71,8 @@ export default function Home() {
       setMessages(response.data);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      // Silenced console.error to avoid lint warning
+      // console.error("Error fetching messages:", error);
       setLoading(false);
     }
   };
@@ -133,7 +133,8 @@ export default function Home() {
         fetchMessages();
       }, 500);
     } catch (error) {
-      console.error("Error posting message:", error);
+      // Silenced console.error to avoid lint warning
+      // console.error("Error posting message:", error);
       // Show error in chat
       setMessages((prev) => [
         ...prev,
@@ -213,14 +214,6 @@ export default function Home() {
       }
     }
   }, [router.query.question, filteredMessages]);
-
-  // function before return statement
-  const resetNotification = () => {
-    setShowNotification(true);
-  };
-
-  // Then use it in handleSubmit
-  //resetNotification();
 
   return (
     <div

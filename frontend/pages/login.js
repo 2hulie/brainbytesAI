@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import api from "../utils/api";
-import { setAuthToken } from "../utils/api";
 
 export default function Login() {
   const router = useRouter();

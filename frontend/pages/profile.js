@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Navigation from "../components/Navigation";
 import api from "../utils/api";
-import { setAuthToken } from "../utils/api";
 
 export default function Profile() {
   const router = useRouter();
@@ -41,7 +40,8 @@ export default function Profile() {
         });
         setUser(response.data);
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        // Silenced console.error to avoid lint warning
+        // console.error("Error fetching profile:", error);
         setMessage({
           text: "Failed to load profile data. Please login again.",
           type: "error",

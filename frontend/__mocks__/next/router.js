@@ -1,3 +1,4 @@
+/* eslint-disable no-undef, react/prop-types */
 // __mocks__/next/router.js
 
 const useRouter = () => ({
