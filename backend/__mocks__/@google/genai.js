@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/* eslint-env jest */
 // __mocks__/@google/genai.js
 // Jest mock for Gemini API to silence errors and allow tests to pass in CI
 
