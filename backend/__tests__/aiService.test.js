@@ -38,12 +38,11 @@ describe("Category detection", () => {
     });
   });
 
-  test("uses general category for unknown topics", () => {
+  test("uses general category for unknown topics", async () => {
     const questionText = "What is the meaning of life?";
-    return generateResponse(questionText).then((result) => {
-      expect(result.category).toBe("general");
-    });
-  });
+    const result = await generateResponse(questionText);
+    expect(result.category).toBe("general");
+  }, 30000);
 });
 
 describe("Question type detection", () => {

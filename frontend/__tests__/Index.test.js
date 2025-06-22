@@ -1,7 +1,38 @@
+import * as api from "../utils/api"; // Import api module
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Home from "../pages/index";
 import axios from "axios";
+
+// Mock the entire api module
+jest.mock("../utils/api", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn((url) => {
+      if (url.includes("/api/messages")) {
+        return Promise.resolve({
+          data: {
+            messages: [],
+            subjects: ["Math", "Science", "History"],
+          },
+        });
+      }
+      if (url.includes("/api/auth/profile")) {
+        return Promise.resolve({
+          data: {
+            id: "mock-user-id",
+            name: "Test User",
+            email: "test@example.com",
+            preferredSubjects: [],
+          },
+        });
+      }
+      return Promise.resolve({ data: {} });
+    }),
+    post: jest.fn(() => Promise.resolve({ data: {} })),
+  },
+  setAuthToken: jest.fn(),
+}));
 
 // Mock react-markdown
 jest.mock("react-markdown", () => ({

@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">34.78% </span>
+                <span class="strong">44.44% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>8/23</span>
+                <span class='fraction'>12/27</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">43.75% </span>
+                <span class="strong">46.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/16</span>
+                <span class='fraction'>7/15</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.36% </span>
+                <span class="strong">46.15% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/22</span>
+                <span class='fraction'>12/26</span>
             </div>
         
             
@@ -255,21 +255,20 @@
 <a name='L190'></a><a href='#L190'>190</a>
 <a name='L191'></a><a href='#L191'>191</a>
 <a name='L192'></a><a href='#L192'>192</a>
-<a name='L193'></a><a href='#L193'>193</a>
-<a name='L194'></a><a href='#L194'>194</a>
-<a name='L195'></a><a href='#L195'>195</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L193'></a><a href='#L193'>193</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -277,9 +276,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -292,7 +288,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -392,6 +387,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -452,9 +448,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import api from "../utils/api";
+import { setAuthToken } from "../utils/api";
 &nbsp;
 export default function Login() {
   const router = useRouter();
@@ -464,15 +461,12 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 &nbsp;
-  const handleSubmit = <span class="fstat-no" title="function not covered" >as</span>ync (e) =&gt; {
+  const handleSubmit = <span class="fstat-no" title="function not covered" >async (e</span>) =&gt; {
 <span class="cstat-no" title="statement not covered" >    e.preventDefault();</span>
 <span class="cstat-no" title="statement not covered" >    setError("");</span>
 <span class="cstat-no" title="statement not covered" >    setLoading(true);</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const { data } = <span class="cstat-no" title="statement not covered" >await axios.post(</span>
-        "http://localhost:3000/api/auth/login",
-        { email, password },
-      );
+      const { data } = <span class="cstat-no" title="statement not covered" >await api.post("/api/auth/login", { email, password });</span>
       // Save token and user to localStorage
 <span class="cstat-no" title="statement not covered" >      localStorage.setItem("token", data.token);</span>
 <span class="cstat-no" title="statement not covered" >      localStorage.setItem("user", JSON.stringify(data.user));</span>
@@ -511,17 +505,16 @@ export default function Login() {
         }}
       &gt;
         &lt;div style={{ textAlign: "center", marginBottom: "2rem" }}&gt;
-          &lt;Link href={router.pathname === "/login" ? "/login" : <span class="branch-1 cbranch-no" title="branch not covered" >"/"}</span>&gt;
-            &lt;a
-              style={{
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "#2196f3",
-                textDecoration: "none",
-              }}
-            &gt;
-              BrainBytes AI
-            &lt;/a&gt;
+          &lt;Link
+            href={router.pathname === "/login" ? "/login" : <span class="branch-1 cbranch-no" title="branch not covered" >"/"}</span>
+            style={{
+              fontSize: "24px",
+              fontWeight: "bold",
+              color: "#2196f3",
+              textDecoration: "none",
+            }}
+          &gt;
+            BrainBytes AI
           &lt;/Link&gt;
         &lt;/div&gt;
 &nbsp;
@@ -532,7 +525,7 @@ export default function Login() {
         &lt;/h1&gt;
 &nbsp;
         {error &amp;&amp; (
-<span class="branch-1 cbranch-no" title="branch not covered" >          &lt;div</span>
+          &lt;div
             style={{
               color: "#f44336",
               backgroundColor: "#ffebee",
@@ -567,7 +560,7 @@ export default function Login() {
           /&gt;
           &lt;div style={{ position: "relative" }}&gt;
             &lt;input
-              type={showPassword ? <span class="branch-0 cbranch-no" title="branch not covered" >"text" </span>: "password"}
+              type={showPassword ? <span class="branch-0 cbranch-no" title="branch not covered" >"text" : "</span>password"}
               value={password}
               onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setPassword(e.target.value)}</span>
               placeholder="•••••••••"
@@ -585,7 +578,7 @@ export default function Login() {
             /&gt;
             &lt;button
               type="button"
-              onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setShowPassword(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >!prev)</span>}</span>
+              onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etShowPassword(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >!prev)}</span></span>
               style={{
                 position: "absolute",
                 right: 12,
@@ -603,24 +596,24 @@ export default function Login() {
               }}
               tabIndex={-1}
             &gt;
-              {showPassword ? <span class="branch-0 cbranch-no" title="branch not covered" >"Hide" </span>: "Show"}
+              {showPassword ? <span class="branch-0 cbranch-no" title="branch not covered" >"Hide" : "</span>Show"}
             &lt;/button&gt;
           &lt;/div&gt;
           &lt;button
             type="submit"
             style={{
               padding: "12px",
-              backgroundColor: loading ? <span class="branch-0 cbranch-no" title="branch not covered" >"#90caf9" </span>: "#2196f3",
+              backgroundColor: loading ? <span class="branch-0 cbranch-no" title="branch not covered" >"#90caf9" : "</span>#2196f3",
               color: "white",
               border: "none",
               borderRadius: "8px",
               fontSize: "16px",
-              cursor: loading ? <span class="branch-0 cbranch-no" title="branch not covered" >"not-allowed" </span>: "pointer",
+              cursor: loading ? <span class="branch-0 cbranch-no" title="branch not covered" >"not-allowed" : "</span>pointer",
               transition: "background-color 0.3s",
             }}
             disabled={loading}
           &gt;
-            {loading ? <span class="branch-0 cbranch-no" title="branch not covered" >"Signing In..." </span>: "Sign In"}
+            {loading ? <span class="branch-0 cbranch-no" title="branch not covered" >"Signing In..." : "</span>Sign In"}
           &lt;/button&gt;
         &lt;/form&gt;
         {/*&lt;div style={{ textAlign: "left", marginTop: "0.6rem", fontSize: "14px" }}&gt;
@@ -635,10 +628,11 @@ export default function Login() {
           style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "14px" }}
         &gt;
           New to BrainBytes AI?{" "}
-          &lt;Link href="/register"&gt;
-            &lt;a style={{ color: "#2196f3", textDecoration: "none" }}&gt;
-              Create an account
-            &lt;/a&gt;
+          &lt;Link
+            href="/register"
+            style={{ color: "#2196f3", textDecoration: "none" }}
+          &gt;
+            Create an account
           &lt;/Link&gt;
         &lt;/div&gt;
       &lt;/div&gt;
@@ -652,7 +646,7 @@ export default function Login() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-14T23:59:13.598Z
+                at 2025-06-21T19:57:45.760Z
             </div>
         <script src="../prettify.js"></script>
         <script>

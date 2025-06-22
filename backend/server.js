@@ -24,8 +24,9 @@ app.use(express.json());
 //aiService.initializeAI();
 
 // Connect to MongoDB
+const mongoUri = process.env.MONGODB_URI || "mongodb://mongo:27017/brainbytes";
 mongoose
-  .connect("mongodb://mongo:27017/brainbytes", {
+  .connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     retryWrites: true,
@@ -289,6 +290,13 @@ app.get("/api/messages", authMiddleware, async (req, res) => {
 // Create a new message and get AI response
 app.post("/api/messages", authMiddleware, async (req, res) => {
   try {
+    if (
+      !req.body.text ||
+      typeof req.body.text !== "string" ||
+      req.body.text.trim() === ""
+    ) {
+      return res.status(400).json({ error: "Message text is required" });
+    }
     // 1. Save user message (initially without category)
     const userMessage = new Message({
       text: req.body.text,
@@ -457,3 +465,4 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export default app; // Export app for Supertest
+export { Message };
