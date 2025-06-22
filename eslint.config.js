@@ -35,10 +35,14 @@ export default [
   // 2) Backend (Node/CommonJS)
   {
     // Lint only JS/TS files in backend (excluding .test files)
-    files: ["backend/**/*.{js,ts}", "!backend/**/*.test.{js,ts}"],
+    files: [
+      "backend/**/*.{js,ts}",
+      "!backend/**/*.test.{js,ts}",
+      "!backend/**/*.mjs",
+    ],
     languageOptions: {
       ecmaVersion: "latest",
-      sourceType: "commonjs",
+      sourceType: "module",
       globals: {
         require: "readonly",
         module: "readonly",
@@ -56,10 +60,10 @@ export default [
   // 3) Backend tests with Jest
   {
     // Only .test.js or .test.ts in backend
-    files: ["backend/**/*.test.{js,ts}"],
+    files: ["backend/**/*.test.{js,ts}", "backend/**/*.mjs"],
     languageOptions: {
       ecmaVersion: "latest",
-      sourceType: "commonjs",
+      sourceType: "module",
       globals: {
         require: "readonly",
         describe: "readonly",
