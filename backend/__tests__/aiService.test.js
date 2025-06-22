@@ -16,6 +16,8 @@ jest.mock("@google/genai", () => {
   };
 });
 
+jest.mock("@google/genai");
+
 describe("Category detection", () => {
   test("detects math category correctly", () => {
     const questionText = "What is 2+2?";
