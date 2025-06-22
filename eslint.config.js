@@ -49,6 +49,7 @@ export default [
         exports: "readonly",
         process: "readonly",
         console: "readonly",
+        setTimeout: "readonly",
       },
     },
     rules: {
@@ -70,6 +71,10 @@ export default [
         test: "readonly",
         expect: "readonly",
         jest: "readonly",
+        beforeAll: "readonly",
+        beforeEach: "readonly",
+        afterAll: "readonly",
+        afterEach: "readonly",
       },
     },
     plugins: { jest: jestPlugin },
