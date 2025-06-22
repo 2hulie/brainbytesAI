@@ -97,14 +97,15 @@ jobs:
 
       - name: Set up test .env
         working-directory: ./backend
-        run: |
-          echo "MONGODB_URI=mongodb://localhost:27017/bytes-test" > .env
-          echo "JWT_SECRET=testsecret" >> .env
-          echo "GEMINI_API_KEY=dummy" >> .env
+        run: cp .env.test .env
 
       - name: Run tests with coverage
         working-directory: ./backend
         run: npm test -- --coverage
+        env:
+          MONGODB_URI: mongodb://mongo:27017/brainbytes
+          JWT_SECRET: testsecret
+          GEMINI_API_KEY: dummy
 
       - name: Upload coverage report
         if: always()
