@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 // Middleware
+app.use(express.json());
+
 const allowedOrigins = [
   "http://localhost:8080",
   "https://brainbytes-frontend.onrender.com", // deployed frontend
@@ -34,7 +36,8 @@ app.use(
 //aiService.initializeAI();
 
 // Connect to MongoDB
-const mongoUri = process.env.MONGODB_URI || "mongodb://mongo:27017/brainbytes";
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) throw new Error("Missing MONGODB_URI");
 mongoose
   .connect(mongoUri, {
     useNewUrlParser: true,
