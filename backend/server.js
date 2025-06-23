@@ -12,13 +12,23 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 // Middleware
+const allowedOrigins = [
+  "http://localhost:8080",
+  "https://brainbytes-frontend.onrender.com", // deployed frontend
+];
+
 app.use(
   cors({
-    origin: "http://localhost:8080", // or "*" for dev, but see below
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
-app.use(express.json());
 
 // Initialize AI model
 //aiService.initializeAI();
